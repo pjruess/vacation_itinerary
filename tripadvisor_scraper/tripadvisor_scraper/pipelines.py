@@ -13,6 +13,6 @@ class TripadvisorScraperPipeline(object):
 	def process_item(self, item, spider):
 		results.append(dict(item))
 
-results = []
-def spider_closed(spider):
-	print results
+	# results = []
+	# def close_spider(spider):
+	# 	print results

@@ -12,14 +12,14 @@ scrapy crawl tripadvisor -o itemsTripadvisor.csv -s CLOSESPIDER_ITEMCOUNT=40
 class TripAdvisorSpider(scrapy.Spider):
 	name = "tripadvisor"
 
-	def __init__(self,  *args, **kwargs):
+	def __init__(self, search=None, *args, **kwargs):
 		super(TripAdvisorSpider, self).__init__(*args, **kwargs)
-
+		self.search = search
 		self.urlbase = 'https://www.tripadvisor.com/'
 
 	def start_requests(self):
 		urls = [
-		'Search?redirect=true&q={0}&ssrc=g&type=eat'.format('austin')
+		'Search?redirect=true&q={0}&ssrc=g&type=eat'.format(self.search)
 			]
 		for url in urls: 
 			url = self.urlbase + url
@@ -37,10 +37,11 @@ class TripAdvisorSpider(scrapy.Spider):
 			url = response.urljoin(href)
 			yield scrapy.Request(url, callback=self.parse_review, priority=1)
 
-		next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
-		if next_page:
-			url = response.urljoin(next_page)
-			yield scrapy.Request(url, self.parse_list)
+		### Uncomment to continue on to next page ###
+		# next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
+		# if next_page:
+		# 	url = response.urljoin(next_page)
+		# 	yield scrapy.Request(url, self.parse_list)
 
 	def parse_review(self, response):
 		# from scrapy.shell import inspect_response
@@ -76,8 +77,18 @@ class TripAdvisorSpider(scrapy.Spider):
 			state = response.xpath('//span[@property="addressRegion"]/text()').extract()[0]
 			postal = response.xpath('//span[@property="postalCode"]/text()').extract()[0]
 			country = response.xpath('//span[@property="addressCountry"]/@content').extract()[0]
-			address = street + ', ' + city + ', ' + state + ' ' + postal + ' ' + country
-			latlon = geocoder.google(address).latlng # geocode address
+			address = street + ', ' + city + ', ' + state # + ' ' + postal + ' ' + country
+			
+			def latlon(address):
+				return geocoder.google(address).latlng # geocode address
+			
+			latlon = latlon(address)
+			if len(latlon) == 0:
+				address + ' ' + postal
+				latlon = latlon(address) # geocode address
+				if len(latlon) == 0:
+					address + ' ' + country
+					latlon = latlon(address) # geocode address
 
 			# Return results
 			yield {
