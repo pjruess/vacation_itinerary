@@ -12,14 +12,27 @@ scrapy crawl tripadvisor2 -o itemsTripadvisor.csv -s CLOSESPIDER_ITEMCOUNT=40
 class TripAdvisorSpider(scrapy.Spider):
 	name = "tripadvisor2"
 
+	def __init__(self,  *args, **kwargs):
+		super(TripAdvisorSpider, self).__init__(*args, **kwargs)
+
+		self.urlbase = 'https://www.tripadvisor.com/'
+
 	def start_requests(self):
 		urls = [
-		'https://www.tripadvisor.com/Attractions-g30196-Activities-Austin_Texas.html'
+		'Search?redirect=true&q={0}&ssrc=g&type=eat'.format('austin')
 			]
 		for url in urls: 
-			yield scrapy.Request(url=url, callback=self.parse)
+			url = self.urlbase + url
+			yield scrapy.Request(url=url, callback=self.parse_search)
 
-	def parse(self, response):
+	def parse_search(self, response):
+		# https://www.tripadvisor.com/Search?redirect=true&q={0}&ssrc=g&type=eat
+		info = response.xpath('//div[@class="result GEOS"]//div[@class="result_wrap "]/@onclick').extract()[0]
+		ext = re.search(r".*Tourism-(.*?)-.*",info).group(1)
+		url = self.urlbase + 'Attractions-' + ext
+		yield scrapy.Request(url, callback=self.parse_list)
+
+	def parse_list(self, response):
 		for href in response.xpath('//div[@class="property_title"]/a/@href').extract():
 			url = response.urljoin(href)
 			yield scrapy.Request(url, callback=self.parse_review, priority=1)
@@ -27,7 +40,7 @@ class TripAdvisorSpider(scrapy.Spider):
 		next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
 		if next_page:
 			url = response.urljoin(next_page)
-			yield scrapy.Request(url, self.parse)
+			yield scrapy.Request(url, self.parse_list)
 
 	def parse_review(self, response):
 		# from scrapy.shell import inspect_response
