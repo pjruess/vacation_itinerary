@@ -5,12 +5,13 @@ import pandas
 search = 'austin'
 form = 'csv'
 
+# TACrawler(search=search,form='var')
+
 try: 
 	nodes = pandas.read_csv(search + '.' + form)
-except IOError as e:
+except IOError:
 	print 'No data to read. TACrawler initiated to collect data'
-	TACrawler(search=search,form='csv')
+	TACrawler(search=search,itemcount=1,numdata=1000,dldelay=0,form='csv')
 	nodes = pandas.read_csv(search + '.' + form)
 
-print nodes
-
+print nodes['latlon']

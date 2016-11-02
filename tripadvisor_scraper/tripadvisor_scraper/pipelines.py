@@ -9,9 +9,11 @@
 #     def process_item(self, item, spider):
 #         return item
 
+import results
+
 class TripadvisorScraperPipeline(object):
 	def process_item(self, item, spider):
-		results.append(dict(item))
+		ta_data.results.append(dict(item))
 
 	# results = []
 	# def close_spider(spider):
