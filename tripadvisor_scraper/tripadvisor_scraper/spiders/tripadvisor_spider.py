@@ -12,9 +12,11 @@ scrapy crawl tripadvisor -o itemsTripadvisor.csv -s CLOSESPIDER_ITEMCOUNT=40
 class TripAdvisorSpider(scrapy.Spider):
 	name = "tripadvisor"
 
-	def __init__(self, search=None, *args, **kwargs):
+	def __init__(self, search, numdata, *args, **kwargs):
 		super(TripAdvisorSpider, self).__init__(*args, **kwargs)
 		self.search = search
+		self.numdata = numdata
+		self.count = 0
 		self.urlbase = 'https://www.tripadvisor.com/'
 
 	def start_requests(self):
@@ -35,18 +37,19 @@ class TripAdvisorSpider(scrapy.Spider):
 	def parse_list(self, response):
 		for href in response.xpath('//div[@class="property_title"]/a/@href').extract():
 			url = response.urljoin(href)
-			yield scrapy.Request(url, callback=self.parse_review, priority=1)
+			if self.count < self.numdata:
+				yield scrapy.Request(url, callback=self.parse_review, priority=1)
 
 		### Uncomment to continue on to next page ###
-		# next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
-		# if next_page:
-		# 	url = response.urljoin(next_page)
-		# 	yield scrapy.Request(url, self.parse_list)
+		next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
+		if next_page:
+			url = response.urljoin(next_page)
+			yield scrapy.Request(url, self.parse_list)
 
 	def parse_review(self, response):
 		# from scrapy.shell import inspect_response
 		# inspect_response(response, self)
-
+		self.count += 1
 
 		# Pull all review data for attraction
 		rating_info = response.xpath('//ul[@class="barChart"]')
