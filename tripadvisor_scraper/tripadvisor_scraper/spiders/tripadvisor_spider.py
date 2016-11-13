@@ -1,18 +1,21 @@
 import scrapy
-# from tripadvisor_scraper.items import TripAdvisorReviewItem
 import re
 import scipy
-import geocoder
+import geocoder # geocoding library for retrieving latlon of attractions
 
 """
-UBUNTU TERMINAL CALL: 
-scrapy crawl tripadvisor -o itemsTripadvisor.csv -s CLOSESPIDER_ITEMCOUNT=40
+Call from terminal: 
+scrapy crawl tripadvisor -o output.csv -s CLOSESPIDER_ITEMCOUNT=10
 """
 
 class TripAdvisorSpider(scrapy.Spider):
-	name = "tripadvisor"
+	name = "tripadvisor" # name of spider when calling
 
 	def __init__(self, search, numdata, *args, **kwargs):
+		"""Spider for crawling TripAdvisor attractions for a 
+		specified location.
+		'search' - desired location to search, as str(location)
+		'numdata' - number of data to parse before stopping"""
 		super(TripAdvisorSpider, self).__init__(*args, **kwargs)
 		self.search = search
 		self.numdata = numdata
@@ -20,44 +23,51 @@ class TripAdvisorSpider(scrapy.Spider):
 		self.urlbase = 'https://www.tripadvisor.com/'
 
 	def start_requests(self):
-		urls = [
+		"""Search 'search' location on TripAdvisor attractions page."""
+		urls = [ # search string url with self.search as str(location)
 		'Search?redirect=true&q={0}&ssrc=g&type=eat'.format(self.search)
 			]
 		for url in urls: 
-			url = self.urlbase + url
-			yield scrapy.Request(url=url, callback=self.parse_search)
+			url = self.urlbase + url # complete url with search string
+			yield scrapy.Request(url=url, callback=self.parse_search) # search location
 
 	def parse_search(self, response):
-		# https://www.tripadvisor.com/Search?redirect=true&q={0}&ssrc=g&type=eat
+		"""Select first result in TripAdvisor search results page,
+		and assume this location is the correct location."""
 		info = response.xpath('//div[@class="result GEOS"]//div[@class="result_wrap "]/@onclick').extract()[0]
-		ext = re.search(r".*Tourism-(.*?)-.*",info).group(1)
-		url = self.urlbase + 'Attractions-' + ext
-		yield scrapy.Request(url, callback=self.parse_list)
+		ext = re.search(r".*Tourism-(.*?)-.*",info).group(1) # TripAdvisor location ID
+		url = self.urlbase + 'Attractions-' + ext # TripAdvisor 'attractions' url
+		yield scrapy.Request(url, callback=self.parse_list) # search attractions 
 
 	def parse_list(self, response):
+		"""Retrieve urls of all attractions, and follow those links. Continue on 
+		to next page if minimum number of items have not been collected."""
 		for href in response.xpath('//div[@class="property_title"]/a/@href').extract():
-			url = response.urljoin(href)
-			if self.count < self.numdata:
+			url = response.urljoin(href) # urljoin incase TripAdvisor uses referenced urls
+			if self.count < self.numdata: # keep collecting until have 'numdata' items
+				# Follow attraction link (necessary to retrieve rating details)
+				# priority=1 makes sure this occurs before continuing to next page (below)
 				yield scrapy.Request(url, callback=self.parse_review, priority=1)
 
-		### Uncomment to continue on to next page ###
+		# Comment to restrict search to first page only
 		next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
-		if next_page:
+		if next_page: # if another page exists... 
 			url = response.urljoin(next_page)
-			yield scrapy.Request(url, self.parse_list)
+			yield scrapy.Request(url, self.parse_list) # continue to next page
 
 	def parse_review(self, response):
-		# from scrapy.shell import inspect_response
-		# inspect_response(response, self)
-		self.count += 1
+		"""Parse current attraction and retrieve attraction name, average rating,
+		full address, and latlon coordinates."""
+		self.count += 1 # 1 review is now being parsed, so add to counter
 
 		# Pull all review data for attraction
 		rating_info = response.xpath('//ul[@class="barChart"]')
-		if len(rating_info) == 0: # check if list of activities
-			# Take only first item out of list
+		# check if this is a list of activities (necessary for activity types in 'attractions')
+		if len(rating_info) == 0: 
+			# Take first attraction from list
 			href = response.xpath('//div[@class="property_title"]/a/@href').extract()[0]
 			url = response.urljoin(href)
-			yield scrapy.Request(url, callback=self.parse_review)
+			yield scrapy.Request(url, callback=self.parse_review) # get attraction ratings
 		else: 
 			# Pull name of attraction
 			attraction = response.xpath('//h1[@id="HEADING"]/text()').extract()[1]
@@ -85,12 +95,13 @@ class TripAdvisorSpider(scrapy.Spider):
 			def latlon(address):
 				return geocoder.google(address).latlng # geocode address
 			
-			latlon = latlon(address)
-			if len(latlon) == 0:
-				address + ' ' + postal
+			# Attempt to geocode
+			latlon = latlon(address) # geocode address
+			if len(latlon) == 0: # if failed...
+				address + ' ' + postal # add zipcode
 				latlon = latlon(address) # geocode address
-				if len(latlon) == 0:
-					address + ' ' + country
+				if len(latlon) == 0: # if failed...
+					address + ' ' + country # add country
 					latlon = latlon(address) # geocode address
 
 			# Return results

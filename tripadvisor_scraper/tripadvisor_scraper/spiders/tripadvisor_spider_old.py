@@ -6,11 +6,11 @@ import geocoder
 
 """
 UBUNTU TERMINAL CALL: 
-scrapy crawl tripadvisor2 -o itemsTripadvisor.csv -s CLOSESPIDER_ITEMCOUNT=40
+scrapy crawl tripadvisor_old -o itemsTripadvisor.csv -s CLOSESPIDER_ITEMCOUNT=40
 """
 
 class TripAdvisorSpider(scrapy.Spider):
-	name = "tripadvisor2"
+	name = "tripadvisor_old"
 
 	def __init__(self,  *args, **kwargs):
 		super(TripAdvisorSpider, self).__init__(*args, **kwargs)
