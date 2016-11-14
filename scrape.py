@@ -44,7 +44,9 @@ lon = nodes.latlon.str.extract(', ([0-9-.]*)\]',expand=True) # get longitudes
 nodes['lat'] = lat.astype(float).round(9) # round to 6th decimal
 nodes['lon'] = lon.astype(float).round(9) # round to 6th decimal
 
+del nodes['latlon']
 print nodes
+# nodes.to_csv('austin_nodes.csv',index=False) # for testing
 
 # **********************
 # Convert road network into pandas dataframe
@@ -112,6 +114,8 @@ except:
 	print left, min( road_df.min(0,2)['START_X'], road_df.min(0,4)['END_X'] )
 
 print road_df
+road_df.columns = ['oneway','miles','startlon','startlat','endlon','endlat']
+# road_df.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
 # Create road network
