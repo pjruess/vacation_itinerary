@@ -46,8 +46,7 @@ nodes['lat'] = lat.astype(float).round(9) # round to 6th decimal
 nodes['lon'] = lon.astype(float).round(9) # round to 6th decimal
 
 del nodes['latlon']
-print nodes
-# nodes.to_csv('austin_nodes.csv',index=False) # for testing
+nodes.to_csv('austin_nodes.csv',index=False) # for testing
 
 # **********************
 # Convert road network into pandas dataframe
@@ -104,7 +103,7 @@ except:
 			str(left) + ' ' + str(bot) + ' ' + str(right) + ' ' + str(top)
 	print clip
 	os.system(clip)
-	edges = shp2df(out_shp,fields=['oneway','LENGTH_GEO',
+	edges = shp2df(out_shp,fields=['oneway','fclass','LENGTH_GEO',
 		'START_X','START_Y','END_X','END_Y'])
 	print 'Newly clipped shapefile retrieved'
 	print 'Verifying new outputs...'
@@ -114,10 +113,11 @@ except:
 	print right, max( edges.max(0,2)['START_X'], edges.max(0,4)['END_X'] )
 	print left, min( edges.min(0,2)['START_X'], edges.min(0,4)['END_X'] )
 
-print edges
 edges.columns = ['oneway','fclass','miles','startlon','startlat','endlon','endlat']
 edges.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
 # Create road network
 # **********************
+print nodes # nodes df
+print edges # edges df
