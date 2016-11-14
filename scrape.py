@@ -5,7 +5,9 @@ import scipy
 import os
 import shapefile # https://github.com/GeospatialPython/pyshp
 
+# **********************
 # Read in arguments passed in from Tkinter gui in scrape_gui.py
+# **********************
 parser = argparse.ArgumentParser() # allow the creation of arguments
 namespace,unparsed = parser.parse_known_args() # unpack arguments
 
@@ -19,10 +21,12 @@ def parse_arg(arg):
 
 d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 
-# Create nodes dataset, running scrapy if needed 
 search = d['q'] + ' ' + d['s']# extract search string (ie. 'austin')
 form = 'csv' # data extension
 
+# **********************
+# Create nodes dataset from attractions, running scrapy if needed
+# **********************
 try: 
 	nodes = pandas.read_csv(search + '.' + form) # read csv if it already exists
 	print 'Existing scrapy .csv output retrieved.'
@@ -68,43 +72,47 @@ try:
 	print 'Existing clipped shapefile retrieved.'
 except: 
 	# **********************
-	# Clip State shapefile to local shapefile for efficiency
+	# Clip State shapefile to local shapefile
 	# **********************
-	
 	print 'Clipping new shapefile for local region...'
 
 	# File location for State shapefile to clip from
 	roads_shp = 'spatial/{0}/texas.shp'.format(state)
 
-	# Retrieve max and min lat and lon values for clipping bbox
+	# Retrieve max and min lat and lon values for clip bounding box
 	# Note this only works in North-Eastern quarter of the globe
 	# due to positive lat and negative lon values
-	latmax = nodes.max(0,-2)['lat']
-	latmin = nodes.min(0,-2)['lat']
-	lonmax = nodes.max(0,-1)['lon']
-	lonmin = nodes.min(0,-1)['lon']
+	left = nodes.min(0,-1)['lon'] # minimum longitude
+	bot = nodes.min(0,-2)['lat'] # minimum latitude
+	right = nodes.max(0,-1)['lon'] # maximum longitude
+	top = nodes.max(0,-2)['lat'] # maximum latitude
 
-# **********************
-# NOTE --- NEED TO ADD BUFFER TO BBOX
-# **********************
+	# Add buffer to bounding box values
+	buf = 0.1 # Buffer out this many decimal degrees in all directions
+	left = left - buf
+	bot = bot - buf
+	right = right + buf
+	top = top + buf
 
 	# ogr2ogr -f "ESRI Shapefile" output.shp input.shp -clipsrc <x_min> <y_min> <x_max> <y_max>
-	# ogr2ogr -f "ESRI Shapefile" spatial/output/austin_roads.shp spatial/TX/texas.shp -clipsrc -97.6384294 30.1341647 -97.8732112 30.2975692
-	# TAKES ~35 seconds for Austin ~ 25 attractions bbox
+	# Without buffer: -97.8732112 30.1341647 -97.6384294 30.2975692
+	# With buffer: -97.9732112 30.0341647 -97.5384294 30.3975692
 	clip = 'ogr2ogr -f "ESRI Shapefile" ' + out_shp + ' ' + roads_shp + ' -clipsrc ' + \
-			str(lonmax) + ' ' + str(latmin) + ' ' + str(lonmin) + ' ' + str(latmax)
+			str(left) + ' ' + str(bot) + ' ' + str(right) + ' ' + str(top)
+	print clip
 	os.system(clip)
 	road_df = shp2df(out_shp,fields=['oneway','LENGTH_GEO',
 		'START_X','START_Y','END_X','END_Y'])
 	print 'Newly clipped shapefile retrieved'
 	print 'Verifying new outputs...'
 	# Compare outputs to verify. Generally seem pretty close! 
-	print latmax, max( road_df.max(0,3)['START_Y'], road_df.max(0,5)['END_Y'] )
-	print latmin, min( road_df.min(0,3)['START_Y'], road_df.min(0,5)['END_Y'] )
-	print lonmax, max( road_df.max(0,2)['START_X'], road_df.max(0,4)['END_X'] )
-	print lonmin, min( road_df.min(0,2)['START_X'], road_df.min(0,4)['END_X'] )
+	print top, max( road_df.max(0,3)['START_Y'], road_df.max(0,5)['END_Y'] )
+	print bot, min( road_df.min(0,3)['START_Y'], road_df.min(0,5)['END_Y'] )
+	print right, max( road_df.max(0,2)['START_X'], road_df.max(0,4)['END_X'] )
+	print left, min( road_df.min(0,2)['START_X'], road_df.min(0,4)['END_X'] )
 
 print road_df
 
-# Currently takes about 50 seconds with no existing data
-# (ie. no existing scraped .csv or clipped .shp)
+# **********************
+# Create road network
+# **********************
