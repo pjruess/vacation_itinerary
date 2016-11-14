@@ -97,7 +97,7 @@ def get_geometry(layer):
 			print 'Unknown'	
 
 if __name__ == '__main__':
-	roadnw = '/media/paul/pman/compopt/roadnetwork/shapefiles/texas.shp'
+	roadnw = 'texas/texas.shp'
 	df = shp2df(roadnw,kind='shapefile',
 		fields=['oneway','LENGTH_GEO','START_X','START_Y','END_X','END_Y'])
 	print df
