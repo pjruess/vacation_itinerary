@@ -69,7 +69,7 @@ state = d['s']
 out_shp = 'spatial/output/' + d['q'].lower() + '_roads.shp'
 
 try: 
-	road_df = shp2df(out_shp,fields=['oneway','LENGTH_GEO',
+	edges = shp2df(out_shp,fields=['oneway','fclass','LENGTH_GEO',
 		'START_X','START_Y','END_X','END_Y'])
 	print 'Existing clipped shapefile retrieved.'
 except: 
@@ -103,19 +103,19 @@ except:
 			str(left) + ' ' + str(bot) + ' ' + str(right) + ' ' + str(top)
 	print clip
 	os.system(clip)
-	road_df = shp2df(out_shp,fields=['oneway','LENGTH_GEO',
+	edges = shp2df(out_shp,fields=['oneway','LENGTH_GEO',
 		'START_X','START_Y','END_X','END_Y'])
 	print 'Newly clipped shapefile retrieved'
 	print 'Verifying new outputs...'
 	# Compare outputs to verify. Generally seem pretty close! 
-	print top, max( road_df.max(0,3)['START_Y'], road_df.max(0,5)['END_Y'] )
-	print bot, min( road_df.min(0,3)['START_Y'], road_df.min(0,5)['END_Y'] )
-	print right, max( road_df.max(0,2)['START_X'], road_df.max(0,4)['END_X'] )
-	print left, min( road_df.min(0,2)['START_X'], road_df.min(0,4)['END_X'] )
+	print top, max( edges.max(0,3)['START_Y'], edges.max(0,5)['END_Y'] )
+	print bot, min( edges.min(0,3)['START_Y'], edges.min(0,5)['END_Y'] )
+	print right, max( edges.max(0,2)['START_X'], edges.max(0,4)['END_X'] )
+	print left, min( edges.min(0,2)['START_X'], edges.min(0,4)['END_X'] )
 
-print road_df
-road_df.columns = ['oneway','miles','startlon','startlat','endlon','endlat']
-# road_df.to_csv('austin_edges.csv',index=False) # for testing
+print edges
+edges.columns = ['oneway','fclass','miles','startlon','startlat','endlon','endlat']
+edges.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
 # Create road network
