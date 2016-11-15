@@ -1,4 +1,3 @@
-# sudesh test
 import argparse
 import ast
 import pandas
@@ -35,7 +34,7 @@ except IOError:
 	# If data does not exist, import crawler and extract data
 	from tripadvisor_scraper.run_tripadvisor_spider import TACrawler
 	print 'No data to read. TACrawler initiated to collect data.'
-	TACrawler(search=search,numdata=20,dldelay=0,form='csv')
+	TACrawler(search=search,numdata=10,dldelay=0,form='csv')
 	nodes = pandas.read_csv(search + '.' + form) # read data from csv
 	print 'New scrapy .csv output retrieved.'	
 
