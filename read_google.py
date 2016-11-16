@@ -271,6 +271,7 @@ def GetResponse(url, raw = False):
 
 if __name__ == '__main__':
 	# pulling up results for a query
+	# TODO: take query as input
 	myurl = build_url_text_search(query = 'top schools in India')
 	myresponse = GetResponse(myurl)
 	myresults = GetResults(myresponse)
