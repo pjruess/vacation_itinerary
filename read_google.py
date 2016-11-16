@@ -45,7 +45,7 @@ def GetResults(myresponse):
 
 		myresponse -- JSON object returned by GetResponse()
 
-		Returns a dict
+		Returns a dict with the following keys: place_id, location, viewport, name, address
 	"""
 	results = []
 	if myresponse['status'] == 'OK':
@@ -128,6 +128,131 @@ def build_url_place_details(placeid, output = 'json', key = 'AIzaSyBsILob4SDyR5z
 		url = url + '&{0}={1}'.format(key, kwargs[key])
 	return url
 
+def GetPlaceDetails(myresponse, review_count = 3):
+	"""
+	"""
+	output = {}
+	if myresponse['status'] == 'OK':
+		# if len(myresponse['html_attributions']) > 0:
+		# 	print 'Attributions:\n{}'.format(myresponse['html_attributions'])
+		# print '\n\nRESULT:\n'
+		result = myresponse['result']
+		# if 'address_components' in result:
+		# 	print 'Address components: {}'.format(result['address_components'])
+		if 'formatted_address' in result:
+			output['address'] = result['formatted_address'].encode('utf-8')
+			# print 'Address: {}'.format(result['formatted_address'].encode('utf-8'))
+		else:
+			output['address'] = None
+			# print 'Address: {}'.format('ADDRESS MISSING')
+		# if 'formatted_phone_number' in result:
+		# 	print 'Phone Number: {}'.format(result['formatted_phone_number'])
+		if 'international_phone_number' in result:
+			output['contact'] = result['international_phone_number']
+			# print 'Phone Number (with international code): {}'.format(result['international_phone_number'])
+		if 'geometry' in result:
+			if 'location' in result['geometry']:
+				output['location'] = result['geometry']['location']
+				# print 'location: ({0}, {1})'.format(result['geometry']['location']['lat'], result['geometry']['location']['lng'])
+			if 'viewport' in result['geometry']:
+				output['viewport'] = result['geometry']['viewport']
+				# print 'Geometry viewport: {}'.format(result['geometry']['viewport'])
+		# if 'icon' in result:
+		# 	print 'Icon url: {}'.format(result['icon'])
+			# urllib.urlretrieve(result['icon'], "icon.png")
+			# image = img.open('icon.png').show()
+		# else:
+		# 	print 'Icon url: {}'.format('MISSING DATA!')
+		if 'name' in result:
+			output['name'] = result['name'].encode('utf-8')
+			# print 'Name: {}'.format(result['name'].encode('utf-8'))
+		else:
+			output['name'] = None
+			# print 'Name: {}'.format('NAME MISSING!')
+		if 'opening_hours' in result:
+			# print 'Opening Hours:'
+			if 'open_now' in result['opening_hours']:
+				output['open_now'] = result['opening_hours']['open_now']
+				# print '\tOpen now? {}'.format('Yes' if result['opening_hours']['open_now'] == True else 'No')
+			# if 'periods' in result['opening_hours']:
+			# 	print '\tPeriods: {}'.format(result['opening_hours']['periods'])
+			if 'weekday_text' in result['opening_hours']:
+				output['weekday_text'] = 'Timings:\n'
+				# print '\tTimings:'
+				for weekday in result['opening_hours']['weekday_text']:
+					output['weekday_text'] = output['weekday_text'] + '\t\t\t\t\t\t\t{}\n'.format(weekday.encode('utf-8'))
+					# print '\t\t\t{}'.format(weekday.encode('utf-8'))
+		if 'permanently_closed' in result:
+			output['perm_closed'] = True
+			# print 'Place is PERMANENTLY CLOSED!'
+		# print 'Photos: {}'.format(result['photos'])
+		if 'place_id' in result:
+			output['placeid'] = result['place_id']
+			# print 'Place ID: {}'.format(result['place_id'])
+		# if 'scope' in result:
+		# 	print 'Scope: {}'.format(result['scope'])	#can be either APP or GOOGLE
+		if 'price_level' in result:
+			# Free (0), Inexpensive, Moderate, Expensive, Very Expensive (4)
+			output['price_level'] = {0: 'Free', 1: 'Inexpensive $', 2: 'Moderate $$', 3: 'Expensive $$$', 4: 'Very Expensive $$$$'}.get(result['price_level'], 'Info not available!')
+			# print 'Price Level: {}'.format({0: 'Free', 1: 'Inexpensive $', 2: 'Moderate $$', 3: 'Expensive $$$', 4: 'Very Expensive $$$$'}.get(result['price_level'], 'Info not available!'))	
+		if 'rating' in result:
+			output['rating'] = result['rating']
+			# print 'Rating: {}'.format(result['rating'])
+		output['reviews'] = 'Reviews:\n'
+		# print 'Reviews:'
+		if 'reviews' in result:
+			if len(result['reviews']) < review_count:
+				output['reviews'] = output['reviews'] + '\tOnly {} review(s) available!\n'.format(len(result['reviews']))
+				# print '\tOnly {} review(s) available!'.format(len(result['reviews']))
+			for i in xrange(0, min(review_count, len(result['reviews']))):
+				output['reviews'] = output['reviews'] + '\tReview {0}:\n'.format(i+1, result['reviews'][i])
+				# print '\tReview {0}:'.format(i+1, result['reviews'][i])
+				if 'author_url' in result['reviews'][i]:
+					output['reviews'] = output['reviews'] + '\t\t\tAuthor: {0} ({1})\n'.format(result['reviews'][i]['author_name'].encode('utf-8'), result['reviews'][i]['author_url'])
+					# print '\t\t\tAuthor: {0} ({1})'.format(result['reviews'][i]['author_name'].encode('utf-8'), result['reviews'][i]['author_url'])
+				output['reviews'] = output['reviews'] + '\t\t\tOverall Rating: {}\n'.format(result['reviews'][i]['rating'])
+				# print '\t\t\tOverall Rating: {}'.format(result['reviews'][i]['rating'])
+				# aspects: appeal, atmosphere, decor, facilities, food, overall, quality and service; rating: 0 to 3
+				output['reviews'] = output['reviews'] + '\t\t\tDetailed Rating (scale: 0 to 3):\n'.format(result['reviews'][i]['aspects'])
+				# print '\t\t\tDetailed Rating (scale: 0 to 3):'.format(result['reviews'][i]['aspects'])
+				for aspect in result['reviews'][i]['aspects']:
+					output['reviews'] = output['reviews'] + '\t\t\t\t\t\t\t\t\t\t\t{0}: {1}\n'.format(aspect['type'], aspect['rating'])
+					# print '\t\t\t\t\t\t\t{0}: {1}'.format(aspect['type'], aspect['rating'])
+				output['reviews'] = output['reviews'] + '\t\t\tComment: {}\n'.format(result['reviews'][i]['text'].encode('utf-8'))
+				output['reviews'] = output['reviews'] + '\t\t\tSubmitted on: {}\n'.format(datetime.fromtimestamp(result['reviews'][i]['time']).strftime('%c'))
+				# print '\t\t\tComment: {}'.format(result['reviews'][i]['text'].encode('utf-8'))
+				# print '\t\t\tSubmitted on: {}\n'.format(datetime.fromtimestamp(result['reviews'][i]['time']).strftime('%c'))
+
+		else:
+			output['reviews'] = output['reviews'] + '\tNo reviews available for this place!\n'
+			# print '\tNo reviews available for this place!'
+		# if 'types' in result:
+		# 	print 'Types: {}'.format(result['types'])
+		if 'url' in result:
+			output['url'] = result['url']
+			# print 'Google URL: {}'.format(result['url'])
+		if 'utc_offset' in result:
+			output['utc_offset'] = float(result['utc_offset']) / 60
+			# print 'UTC offset: {} hr'.format(float(result['utc_offset']) / 60)
+		# if 'vicinity' in result:
+		# 	print 'Vicinity: {}'.format(result['vicinity'])
+		if 'website' in result:
+			output['website'] = result['website'].encode('utf-8')
+			# print 'Website: {}'.format(result['website'].encode('utf-8'))
+	else:
+		if myresponse['status'] == 'ZERO_RESULTS' or myresponse['status'] == 'NOT_FOUND':
+			print 'No Results found!'
+		if myresponse['status'] == 'UNKNOWN_ERROR':
+			print 'Unknown error! Please try again.'
+		if myresponse['status'] == 'OVER_QUERY_LIMIT':
+			print 'Your over your quota of usage limit!'
+		if myresponse['status'] == 'REQUEST_DENIED ':
+			print 'Your request has been denied! Please verify your API key.'
+		if myresponse['status'] == 'INVALID_REQUEST ':
+			print 'Some required parameter is PROBABLY missing!'
+
+	return output
+
 def GetResponse(url, raw = False):
 	"""
 		Opens a passed URL and collects a JSON response.
@@ -145,8 +270,21 @@ def GetResponse(url, raw = False):
 
 
 if __name__ == '__main__':
-	myurl = build_url_text_search(query = 'restaurants in New York')
+	# pulling up results for a query
+	myurl = build_url_text_search(query = 'top schools in India')
 	myresponse = GetResponse(myurl)
 	myresults = GetResults(myresponse)
-	for result in myresults:
-		print '{0}: {1}'.format(result['name'], result['address'])
+	if len(myresults) > 0:
+		for result in myresults:
+			print '{0}: {1}'.format(result['name'], result['address'])
+		# printing the details of the top result
+		placename = myresults[0]['name']
+		myurl = build_url_place_details(placeid = myresults[0]['place_id'])
+		myresponse = GetResponse(myurl)
+		myresults = GetPlaceDetails(myresponse, review_count = 5)
+		print '\n\nDetails of {}:\n'.format(placename)
+		if len(myresults) > 0:
+			for ele in myresults:
+				print '{0}: {1}'.format(ele, myresults[ele])
+	else:
+		print 'No results available'
