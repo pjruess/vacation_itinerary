@@ -278,7 +278,6 @@ if __name__ == '__main__':
 		for result in myresults:
 			print '{0}: {1}'.format(result['name'], result['address'])
 		# printing the details of the top result
-		# testing comment
 		placename = myresults[0]['name']
 		myurl = build_url_place_details(placeid = myresults[0]['place_id'])
 		myresponse = GetResponse(myurl)
