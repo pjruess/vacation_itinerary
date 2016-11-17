@@ -13,19 +13,19 @@ root.title('Get TripAdvisor Data')
 w = root.winfo_screenwidth() # get screen width
 h = root.winfo_screenheight() # get screen height
 s = 2 # set scaling constant (2 = 1/4 screen size)
-WINDOW_SIZE = str(w/s) + 'x' + str(h/(s*2))
+WINDOW_SIZE = str(w/s) + 'x' + str(h/s)
 root.geometry(WINDOW_SIZE)
 
 # # Create default font
 # font = tkFont.Font(size=h/60,weight='bold')
 
-# Create label for input box
-labelText = Tkinter.StringVar()
-labelText.set('Please enter a location (City, State)')
-labelDir = Tkinter.Label(root,textvariable=labelText,height=2)
-labelDir['font'] = tkFont.Font(size=h/60) # fontsize ~ 36pt
-labelDir['fg'] = 'black'
-labelDir.pack()
+# Create label for city/state input box
+citylabeltext = Tkinter.StringVar()
+citylabeltext.set('Please enter a destination (City, State)')
+citylabel = Tkinter.Label(root,textvariable=citylabeltext,height=2)
+citylabel['font'] = tkFont.Font(size=h/60) # fontsize ~ 36pt
+citylabel['fg'] = 'black'
+citylabel.pack()
 
 # Create text entry box for user to specify location
 city = Tkinter.Entry(root)
@@ -34,6 +34,14 @@ city['fg'] = 'grey'
 city.insert(0,'Austin, TX')
 city.pack()
 city.focus_set()
+
+# Create label for hotel input box
+baselabeltext = Tkinter.StringVar()
+baselabeltext.set('Please enter a Hotel at your destination')
+baselabel = Tkinter.Label(root,textvariable=baselabeltext,height=2)
+baselabel['font'] = tkFont.Font(size=h/60) # fontsize ~ 36pt
+baselabel['fg'] = 'black'
+baselabel.pack()
 
 # Create text entry box for user to specify hotel
 base = Tkinter.Entry(root)
@@ -65,7 +73,7 @@ def enter(event):
 root.bind('<Return>', enter)
 
 # Create button to run script
-b = Tkinter.Button(root, text='Scrape TripAdvisor!',command=callback)
+b = Tkinter.Button(root, text='Get my itinerary!',command=callback)
 b['font'] = tkFont.Font(size=h/60) # fontsize ~ 36pt
 b.configure(foreground='black')
 b.pack()

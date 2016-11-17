@@ -5,6 +5,7 @@ import scipy
 import os
 import shapefile # https://github.com/GeospatialPython/pyshp
 import geocoder
+from shapely.geometry import Point, LineString
 
 # **********************
 # Read in arguments passed in from Tkinter gui in scrape_gui.py
@@ -119,6 +120,25 @@ except:
 	print left, min( edges.min(0,2)['START_X'], edges.min(0,4)['END_X'] )
 
 edges.columns = ['oneway','fclass','miles','startlon','startlat','endlon','endlat']
+
+# **********************
+# Convert latlon points to LINESTRING format for mapping
+# **********************
+startpoints = []
+endpoints = []
+for i in range(len(edges)):
+	sp = Point(edges['startlon'].values[i],edges['startlat'].values[i])
+	startpoints.append(sp) # shapely pointfile of startpoint
+	ep = Point(edges['endlon'].values[i],edges['endlat'].values[i])
+	endpoints.append(ep) # shapely pointfile of endpoint
+
+lines = []
+for a,b in zip(startpoints,endpoints):
+	l = LineString([a,b]) # line
+	lines.append(l.wkt) # add as well-known-text format
+
+edges['LINESTRING'] = lines # add to edges dataset
+
 edges.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
