@@ -50,10 +50,10 @@ class TripAdvisorSpider(scrapy.Spider):
 				yield scrapy.Request(url, callback=self.parse_review, priority=1)
 
 		# Comment to restrict search to first page only
-		next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
-		if next_page: # if another page exists... 
-			url = response.urljoin(next_page)
-			yield scrapy.Request(url, self.parse_list) # continue to next page
+		# next_page = response.xpath('//div[@class="unified pagination "]/a/@href').extract()[-1]
+		# if next_page: # if another page exists... 
+		# 	url = response.urljoin(next_page)
+		# 	yield scrapy.Request(url, self.parse_list) # continue to next page
 
 	def parse_review(self, response):
 		"""Parse current attraction and retrieve attraction name, average rating,

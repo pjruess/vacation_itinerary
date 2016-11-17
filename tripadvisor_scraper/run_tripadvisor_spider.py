@@ -4,7 +4,7 @@ from tripadvisor_scraper.spiders.tripadvisor_spider import TripAdvisorSpider
 
 class TACrawler:
 
-	def __init__(self,search,numdata=100,dldelay=0,form='csv'):
+	def __init__(self,search,numdata=1000,dldelay=0,form='csv'):
 		"""Calls tripadvisor_scraper spider to crawl tripadvisor 
 		attractions page with provided search query and input settings.
 		'search' - search string for tripadvisor, must be str(location)

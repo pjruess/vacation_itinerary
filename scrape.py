@@ -4,6 +4,7 @@ import pandas
 import scipy
 import os
 import shapefile # https://github.com/GeospatialPython/pyshp
+import geocoder
 
 # **********************
 # Read in arguments passed in from Tkinter gui in scrape_gui.py
@@ -21,7 +22,8 @@ def parse_arg(arg):
 
 d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 
-search = d['q'] + ' ' + d['s']# extract search string (ie. 'austin')
+search = d['city'] + ' ' + d['state']# extract search string (ie. 'austin')
+hotel = d['base'].replace('_',' ')
 form = 'csv' # data extension
 
 # **********************
@@ -34,9 +36,13 @@ except IOError:
 	# If data does not exist, import crawler and extract data
 	from tripadvisor_scraper.run_tripadvisor_spider import TACrawler
 	print 'No data to read. TACrawler initiated to collect data.'
-	TACrawler(search=search,numdata=10,dldelay=0,form='csv')
+	TACrawler(search=search,numdata=1000,dldelay=0,form='csv')
 	nodes = pandas.read_csv(search + '.' + form) # read data from csv
 	print 'New scrapy .csv output retrieved.'	
+
+# Add hotel to nodes dataframe
+hotellatlon = geocoder.google(hotel + ' ' + search).latlng # geocode address
+nodes.loc[len(nodes)] = [str(hotellatlon),'hotel','','']
 
 # Retrieve lat and lon values as floats, and write to nodes df
 lat = nodes.latlon.str.extract('\[([0-9-.]*),',expand=True) # get latitudes
@@ -63,9 +69,9 @@ def shp2df(fname,fields=False):
 	return data
 
 # File location for locally-clipped output
-state = d['s']
+state = d['state']
 
-out_shp = 'spatial/output/' + d['q'].lower() + '_roads.shp'
+out_shp = 'spatial/output/' + d['city'].lower() + '_roads.shp'
 
 try: 
 	edges = shp2df(out_shp,fields=['oneway','fclass','LENGTH_GEO',
@@ -120,3 +126,41 @@ edges.to_csv('austin_edges.csv',index=False) # for testing
 # **********************
 print nodes # nodes df
 print edges # edges df
+
+# **********************
+# Display road network and nodes in geoplotter
+# **********************
+
+
+
+# **********************
+# Display road network and nodes in qgis
+# **********************
+# from qgis.core import *
+# from qgis.gui import *
+# from PyQt4.QtCore import *
+
+# # Supply path to QGIS install location
+# QgsApplication.setPrefixPath('/usr/bin/qgis',True)
+# # Create reference to QgsApplication
+# qgs = QgsApplication([],True) # No GUI
+# qgs.initQgis()
+
+# # Initialize map canvas
+# canvas = QgsMapCanvas()
+# canvas.setCanvasColor(Qt.white)
+# canvas.enableAntiAliasing(True) # Smooth rendering
+
+# # Load layer
+# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+# QgsMapLayerRegistry.instance().addMapLayer(layer)
+# canvas.setExtent(layer.extent())
+# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+
+# # Display map
+# canvas.refresh()
+# canvas.show()
+# qgs.exec_()
+
+# # Remove provider and layer registries from memory
+# qgs.exitQgis()
