@@ -13,15 +13,18 @@ screen_width = master.winfo_screenwidth()
 screen_height = master.winfo_screenheight()
 
 number_frame = 3	# number of frames
-frame_width = screen_width / number_frame
-frame_height = screen_height
+frame_width = int(0.81 * screen_width) / number_frame
+frame_height = int(0.8 * screen_height)
 
 def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
-	return tk.Frame(parentwidget, height = height, width = width, relief = relief)
+	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
 
 # Create three frames
 map_frame = AddFrame(master)
-map_frame.pack(side = tk.LEFT)
+map_frame.pack(side = tk.LEFT, fill = tk.BOTH, padx = 5, pady = 5)
+map_frame_label = tk.Label(map_frame, text = 'Map:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
+map_frame_label.pack(side = tk.TOP, fill = tk.X)
+# map_frame_label.place(map_frame)
 
 itinerary_frame = AddFrame(master)
 itinerary_frame.pack(side = tk.LEFT)
@@ -41,6 +44,20 @@ image_label.image = route_map
 image_label.pack()
 
 
+# Add button to remove everything save the map
+def ZoomMap():
+	itinerary_frame.destroy()
+	review_frame.destroy()
+	image = Image.open('ToRudys.png')
+	resized_image = image.resize((1024, frame_height), Image.ANTIALIAS)
+	route_map = ImageTk.PhotoImage(resized_image)
+	# image_label = tk.Label(map_frame, image = route_map, relief = tk.SUNKEN)
+	image_label['image'] = route_map
+	image_label.image = route_map
+
+map_frame_button = tk.Button(map_frame, text = 'Zoom', font = '16', command = ZoomMap)
+map_frame_button.pack(padx = 3, pady = 3)
+
 
 # Create Menu items
 menu = tk.Menu(master)
@@ -56,8 +73,11 @@ def CmdExit():
 def HelpAbout():
 	print 'Version 1.0'
 
-def HelpEmail():
-	print 'Email authors'
+def MailAuthor(name):
+	import webbrowser
+	email = {'Melissa': 'mmlee246@gmail.com', 'Paul': 'pjruess@gmail.com', 'Sudesh': 'sudesh@utexas.edu'}[name]
+	link = 'mailto:{0}?subject={1}&body=Hi%20{2}\n'.format(email, 'Help%20with%20Optimal%20Itinerary', name)
+	webbrowser.open(link)
 
 # Commands Menu
 filemenu = tk.Menu(menu)
@@ -70,7 +90,14 @@ filemenu.add_command(label = 'Exit', command = CmdExit)
 helpmenu = tk.Menu(menu)
 menu.add_cascade(label = 'Help', menu = helpmenu)
 helpmenu.add_command(label = 'About', command = HelpAbout)
-helpmenu.add_command(label = 'Email authors', command = HelpEmail)
+
+# Authors
+authormenu = tk.Menu(helpmenu)
+helpmenu.add_cascade(label = 'Email authors', menu = authormenu)
+authormenu.add_command(label = 'Melissa Lee', command = lambda: MailAuthor('Melissa'))
+authormenu.add_command(label = 'Paul Ruess', command = lambda: MailAuthor('Paul'))
+authormenu.add_command(label = 'Sudesh Agrawal', command = lambda: MailAuthor('Sudesh'))
+
 
 
 # review_frame = tk.Frame(master, bd = 2, relief = tk.SUNKEN)
