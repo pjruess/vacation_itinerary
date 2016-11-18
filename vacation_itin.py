@@ -8,6 +8,8 @@ import networkx
 from geoplotter import *
 import matplotlib.pyplot
 
+TIME_VALUE_OF_MONEY = 12.
+
 class vacation_itinerary:
 
 	def __init__(self,city_file,attractions_file,**kwargs):
@@ -41,13 +43,13 @@ class vacation_itinerary:
 	    self.BstartPTS = zip(self.Bds.startlon.values, self.Bds.startlat.values)
 	    self.BendPTS = zip(self.Bds.endlon.values, self.Bds.endlat.values)
 
-	    # Simplification - all roads speed = 50mph
-	    timeF = scipy.ones((len(self.Fds.miles.values),1))*50.
-	    self.F_dict = [dict(weight=mi[0]) for mi in timeF]
-	    timeT = scipy.ones((len(self.Tds.miles.values),1))*50.
-	    self.T_dict = [dict(weight=mi[0]) for mi in timeT]
-	    timeB = scipy.ones((len(self.Bds.miles.values),1))*50.
-	    self.B_dict = [dict(weight=mi[0]) for mi in timeB]
+	    # Simplification - all roads speed = 50mph, D=RT
+	    timeF = scipy.ones((len(self.Fds.miles.values),1))/50.
+	    self.F_dict = [dict(time=mi[0]) for mi in timeF]
+	    timeT = scipy.ones((len(self.Tds.miles.values),1))/50.
+	    self.T_dict = [dict(time=mi[0]) for mi in timeT]
+	    timeB = scipy.ones((len(self.Bds.miles.values),1))/50.
+	    self.B_dict = [dict(time=mi[0]) for mi in timeB]
 
 	    # add F streets        
 	    F_edges = zip(self.FstartPTS, self.FendPTS, self.F_dict)
@@ -66,7 +68,7 @@ class vacation_itinerary:
 
 	# finds the shortest path between two nodes using Dijkstra's algorithm in networkx
 	def getSPNetworkx(self,startnode,destnode):
-		return networkx.shortest_path(self.gd,source=startnode,target=destnode,weight='weight')
+		return networkx.shortest_path(self.gd,source=startnode,target=destnode,weight='time')
 
 
 	# plots street network using geoplotter
@@ -87,9 +89,9 @@ class vacation_itinerary:
 
 
 	# plots a single address
-	def drawAddress(self,addressLon,addressLat,marksz=75):
+	def drawAddress(self,addressLon,addressLat,marksz=75,co='r'):
 		cND = self.findClosestNode(addressLat,addressLon)
-		self.DSmap.drawPoints(lat=cND[1],lon=cND[0],color='r',s=marksz)
+		self.DSmap.drawPoints(lat=cND[1],lon=cND[0],color=co,s=marksz)
 
 
 	# finds longitude and latitude range w.r.t. lon and lat of attractions
@@ -139,14 +141,30 @@ class vacation_itinerary:
 
 	# finds the total reward given an itinerary
 	def getItineraryReward(self,itin):
-
+		print itin
 		# calculates reward for visiting all the attractions in the itinerary
 		# reward is in terms of USD
-		attr_reward_temp = [self.attr[self.attr.attraction == nm].rating.values[0]*10. for nm in itin]
+		attr_reward_temp = [self.attr[(self.attr.attraction == nm)].rating.values[0]*10. for nm in itin if (nm != 'hotel')]
 		attr_reward = scipy.sum(attr_reward_temp)
-		print attr_reward
+		print 'Total Attraction Reward = ', attr_reward
 
-		time_reward_temp = [networkx.shortest_path_length(self.gd, source=(self.attr[self.attr.attraction==itin[p]].lon.values[0],self.attr[self.attr.attraction==itin[p]].lat.values[0]), target=(str(self.attr[self.attr.attraction==itin[p+1]].lon.values[0]),str(self.attr[self.attr.attraction==itin[p+1]].lat.values[0])), weight='weight') for p in range(1)] # range(len(itin)-1)]
+		time_reward_temp = [networkx.shortest_path_length(self.gd, source=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0])), target=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0])), weight='time') for p in range(1)] # range(len(itin)-1)]
+		print 'Time Reward (Negative) = ', scipy.sum(time_reward_temp)*TIME_VALUE_OF_MONEY*(-1)
+		
+		print itin[0]
+		temp1 = tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[0]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[0]].lat.values[0]))
+		print temp1
+		self.drawStreetNetwork()
+		self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='g')
+		print itin[1]
+		temp2 = tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[1]].lat.values[0]))
+		print temp2
+		print itin[2]
+		self.drawAddress(addressLon=temp2[0],addressLat=temp2[1],co='y')
+		temp3 = tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[2]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[2]].lat.values[0]))
+		print temp3
+		self.drawAddress(addressLon=temp3[0],addressLat=temp3[1],co='m')
+		self.zoomToFit()
 
 		return 0
 
@@ -163,11 +181,14 @@ class vacation_itinerary:
 
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+	"""
 	austin_itinerary.drawStreetNetwork()
 	austin_itinerary.drawAddress(addressLon=austin_itinerary.attr.lon.values[0],addressLat=austin_itinerary.attr.lat.values[0])
 	austin_itinerary.zoomToFit()
-	
-	#austin_itinerary.getItineraryReward(itin=temp)
+	"""
+	temp = ['hotel']
+	temp.extend(austin_itinerary.attr.attraction.values)
+	austin_itinerary.getItineraryReward(itin=temp)
 
 	
 
