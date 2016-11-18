@@ -86,6 +86,7 @@ except:
 
 	# File location for State shapefile to clip from
 	roads_shp = 'spatial/{0}/texas.shp'.format(state)
+	# roads_shp = 'spatial/usa/merged_final.shp'
 
 	# Retrieve max and min lat and lon values for clip bounding box
 	# Note this only works in North-Eastern quarter of the globe
@@ -156,31 +157,43 @@ print edges # edges df
 # **********************
 # Display road network and nodes in qgis
 # **********************
-# from qgis.core import *
-# from qgis.gui import *
-# from PyQt4.QtCore import *
+from qgis.core import *
+from qgis.gui import *
+from PyQt4.QtCore import *
 
-# # Supply path to QGIS install location
-# QgsApplication.setPrefixPath('/usr/bin/qgis',True)
-# # Create reference to QgsApplication
-# qgs = QgsApplication([],True) # No GUI
-# qgs.initQgis()
+# Supply path to QGIS install location
+QgsApplication.setPrefixPath('/usr/bin/qgis',True)
+# Create reference to QgsApplication
+qgs = QgsApplication([],True) # No GUI
+qgs.initQgis()
 
-# # Initialize map canvas
-# canvas = QgsMapCanvas()
-# canvas.setCanvasColor(Qt.white)
-# canvas.enableAntiAliasing(True) # Smooth rendering
+# Initialize map canvas
+canvas = QgsMapCanvas()
+canvas.setCanvasColor(Qt.white)
+canvas.enableAntiAliasing(True) # Smooth rendering
 
-# # Load layer
-# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-# QgsMapLayerRegistry.instance().addMapLayer(layer)
-# canvas.setExtent(layer.extent())
-# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+# Load road layer
+layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+QgsMapLayerRegistry.instance().addMapLayer(layer)
+canvas.setExtent(layer.extent())
+canvas.setLayerSet([QgsMapCanvasLayer(layer)])
 
-# # Display map
-# canvas.refresh()
-# canvas.show()
-# qgs.exec_()
+# Load attractions layer
+layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+QgsMapLayerRegistry.instance().addMapLayer(layer)
+canvas.setExtent(layer.extent())
+canvas.setLayerSet([QgsMapCanvasLayer(layer)])
 
-# # Remove provider and layer registries from memory
-# qgs.exitQgis()
+# Load hotel layer
+layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+QgsMapLayerRegistry.instance().addMapLayer(layer)
+canvas.setExtent(layer.extent())
+canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+
+# Display map
+canvas.refresh()
+canvas.show()
+qgs.exec_()
+
+# Remove provider and layer registries from memory
+qgs.exitQgis()
