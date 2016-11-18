@@ -20,12 +20,16 @@ frame_width = int(screen_width_factor * screen_width) / number_frame
 frame_height = int(screen_height_factor * screen_height)
 master.minsize(frame_width, int(screen_size_ratio * frame_width))
 master.maxsize(screen_width, screen_height)
-master.geometry("%dx%d%+d%+d" % (int(1.03 * number_frame * frame_width), screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
+master.geometry("%dx%d%+d%+d" % (int(number_frame * (frame_width + 25)), screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
 
 
 
-def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
-	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
+# def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
+# 	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
+
+def AddFrame(parentwidget, height = frame_height, relief = tk.SUNKEN):
+	return tk.Frame(parentwidget, height = height, relief = relief, bd = 3)
+
 
 # Create 3 frames -- map frame, Itinerary frame, reviews frame
 map_frame = AddFrame(master)
@@ -124,18 +128,65 @@ map_frame_hidden_button = tk.Button(map_frame, text = 'Restore', font = '16', co
 
 
 # Add elements to itinerary_frame
+itinerary_frame_label = tk.Label(itinerary_frame, text = 'Schedule:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
+itinerary_frame_list = tk.Listbox(itinerary_frame, bd = 0, font = 'Literata 14')
+# Add scrollbars
+itinerary_yscrollbar = tk.Scrollbar(itinerary_frame)
+# attach list box to scrollbar
+itinerary_frame_list.config(yscrollcommand = itinerary_yscrollbar.set)
+itinerary_yscrollbar.config(command = itinerary_frame_list.yview)
+
+for i in range(20):
+	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 Hotel {}'.format(i+1))
+
+
+
+# Add elements to review frame
+review_frame_label = tk.Label(review_frame, text = 'Reviews:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
+number_reviews = 0
+review_frame_review_label = []
+
+def CreateReviewLabel(root, text, number_reviews):
+	review_frame_review_label.append(tk.Label(root, text = text, font = 'Literata 16', justify = tk.LEFT, bd = 2))
+	review_frame_review_label[number_reviews - 1].grid(row = number_reviews, column = 0, sticky = tk.W)
+
+number_reviews += 1
+CreateReviewLabel(review_frame, 'Sudesh\nRating: 4.3\nGood!\n', number_reviews)
+number_reviews += 1
+CreateReviewLabel(review_frame, 'Melissa\nRating: 4.0\nGood!\n', number_reviews)
+number_reviews += 1
+CreateReviewLabel(review_frame, 'Paul\nRating: 3.9\nExcellent!\n', number_reviews)
+
+
 
 
 
 # Position the widgets
 map_frame.grid(row = 0, column = 0, padx = 5, pady = 5, sticky = tk.N + tk.W)
+map_frame.columnconfigure(0, minsize = frame_width)
+map_frame.rowconfigure(1, weight = 1)
 itinerary_frame.grid(row = 0, column = 1, padx = 5, pady = 5, sticky = tk.N + tk.W)
-review_frame.grid(row = 0, column = 2, padx = 5, pady = 5, sticky = tk.N + tk.W)
+itinerary_frame.columnconfigure(0, pad = 0, minsize = frame_width, weight = 1)
+itinerary_frame.rowconfigure(1, minsize = int(0.75 * frame_height))
+review_frame.grid(row = 0, column = 2, padx = 5, pady = 5, sticky = tk.N + tk.W + tk.E)
+review_frame.columnconfigure(0, minsize = frame_width)
+for i in xrange(1, review_frame.grid_size()[1]):
+	review_frame.rowconfigure(i, weight = 1)
+
+
 
 map_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
 image_label.grid(row = 1, column = 0, sticky = tk.W + tk.E)
 map_frame_button.grid(row = 2, column = 0)
 map_frame_hidden_button.grid(row = 3, column = 0)
 map_frame_hidden_button.grid_remove()
+
+
+itinerary_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
+itinerary_frame_list.grid(row = 1, column = 0, sticky = tk.W + tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
+itinerary_yscrollbar.grid(row = 1, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
+
+
+review_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
 
 master.mainloop()
