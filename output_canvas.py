@@ -13,7 +13,7 @@ master.title('Optimal Itinerary')
 # Works only if there is a single display; otherwise sums the value from each display
 screen_width = master.winfo_screenwidth()
 screen_height = master.winfo_screenheight()
-master.maxsize(screen_width, screen_height)
+master.maxsize(screen_width, int(0.9 * screen_height))
 
 
 number_frame = 3	# number of frames
@@ -21,11 +21,11 @@ frame_width = int(0.8 * screen_width) / number_frame
 frame_height = int(0.8 * screen_height)
 master.minsize(frame_width, int((9 * frame_width) / 16))
 
-def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
-	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
+def AddFrame(parentwidget, text, width = frame_width, height = frame_height, relief = tk.SUNKEN):
+	return tk.LabelFrame(parentwidget, text = text, height = height, width = width, relief = relief, bd = 3, font = 'Literata 20')
 
 # Create three frames
-map_frame = AddFrame(master)
+map_frame = AddFrame(master, text = 'Map')
 # map_frame.pack(side = tk.LEFT, fill = tk.BOTH, padx = 5, pady = 5)
 map_frame.grid(row = 0, column = 0, padx = 5, pady = 5, sticky = tk.N)
 map_frame_label = tk.Label(map_frame, text = 'Map:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
@@ -33,7 +33,7 @@ map_frame_label = tk.Label(map_frame, text = 'Map:', font = 'Literata 20', justi
 map_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E + tk.N)
 # map_frame_label.place(map_frame)
 
-itinerary_frame = AddFrame(master)
+itinerary_frame = AddFrame(master, text = 'Schedule')
 # itinerary_frame.pack(side = tk.LEFT)
 itinerary_frame.grid(row = 0, column = 1)
 
@@ -52,7 +52,7 @@ itinerary_frame_list.grid(row = 1, column = 0)
 
 itinerary_yscrollbar.config(command = itinerary_frame_list.yview)
 
-review_frame = AddFrame(master)
+review_frame = AddFrame(master, text = 'Reviews')
 # review_frame.pack(side = tk.LEFT)
 review_frame.grid(row = 0, column = 2)
 

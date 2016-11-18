@@ -27,14 +27,14 @@ master.geometry("%dx%d%+d%+d" % (int(number_frame * (frame_width + 25)), screen_
 # def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
 # 	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
 
-def AddFrame(parentwidget, height = frame_height, relief = tk.SUNKEN):
-	return tk.Frame(parentwidget, height = height, relief = relief, bd = 3)
+def AddFrame(parentwidget, text, height = frame_height, width = frame_width, relief = tk.SUNKEN):
+	return tk.LabelFrame(parentwidget, text = text,  height = height, width = width, relief = relief, bd = 3, font = 'Literata 20')
 
 
 # Create 3 frames -- map frame, Itinerary frame, reviews frame
-map_frame = AddFrame(master)
-itinerary_frame = AddFrame(master)
-review_frame = AddFrame(master)
+map_frame = AddFrame(master, text = 'Map')
+itinerary_frame = AddFrame(master, text = 'Schedule')
+review_frame = AddFrame(master, text = 'Reviews')
 
 
 # Create Menu items
@@ -82,7 +82,6 @@ authormenu.add_command(label = 'Sudesh Agrawal', command = lambda: MailAuthor('S
 
 
 # Add elements to map frame
-map_frame_label = tk.Label(map_frame, text = 'Map:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
 # Add map
 image = Image.open('ToRudys.png')
 width, height = image.size
@@ -94,6 +93,7 @@ image_label = tk.Label(map_frame, image = route_map, relief = tk.SUNKEN)
 image_label.image = route_map
 # Add button to remove everything save the map
 def ZoomMap():
+	print map_frame['width']
 	itinerary_frame.grid_remove()
 	review_frame.grid_remove()
 	map_frame_button.grid_remove()
@@ -111,6 +111,7 @@ def RestoreMap():
 	map_frame_hidden_button.grid_remove()
 	map_frame_button.grid()
 
+	map_frame.config(width = frame_width, height = frame_height)
 	image = Image.open('ToRudys.png')
 	width, height = image.size
 	map_width = frame_width
@@ -118,7 +119,8 @@ def RestoreMap():
 	resized_image = image.resize((map_width, map_height), Image.ANTIALIAS)
 	# resized_image = image.resize((1024, frame_height), Image.ANTIALIAS)
 	route_map = ImageTk.PhotoImage(image)
-	image_label['image'] = route_map
+	image_label.config(image = route_map)
+	# image_label['image'] = route_map
 	image_label.image = route_map
 
 
@@ -128,7 +130,6 @@ map_frame_hidden_button = tk.Button(map_frame, text = 'Restore', font = '16', co
 
 
 # Add elements to itinerary_frame
-itinerary_frame_label = tk.Label(itinerary_frame, text = 'Schedule:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
 itinerary_frame_list = tk.Listbox(itinerary_frame, bd = 0, font = 'Literata 14')
 # Add scrollbars
 itinerary_yscrollbar = tk.Scrollbar(itinerary_frame)
@@ -142,15 +143,14 @@ for i in range(20):
 
 
 # Add elements to review frame
-review_frame_label = tk.Label(review_frame, text = 'Reviews:', font = 'Literata 20', justify = tk.CENTER, bd = 0, cursor = 'spider')
 number_reviews = 0
 review_frame_review_label = []
 
 def CreateReviewLabel(root, text, number_reviews):
-	review_frame_review_label.append(tk.Label(root, text = text, font = 'Literata 16', justify = tk.LEFT, bd = 2))
-	review_frame_review_label[number_reviews - 1].grid(row = number_reviews, column = 0, sticky = tk.W)
+	review_frame_review_label.append(tk.Label(root, text = text, font = 'Literata 16', justify = tk.LEFT, bd = 2, relief = tk.SUNKEN))
+	review_frame_review_label[number_reviews].grid(row = number_reviews, column = 0, sticky = tk.W + tk.E)
+	review_frame_review_label[number_reviews].columnconfigure(0, weight = 1)
 
-number_reviews += 1
 CreateReviewLabel(review_frame, 'Sudesh\nRating: 4.3\nGood!\n', number_reviews)
 number_reviews += 1
 CreateReviewLabel(review_frame, 'Melissa\nRating: 4.0\nGood!\n', number_reviews)
@@ -165,6 +165,7 @@ CreateReviewLabel(review_frame, 'Paul\nRating: 3.9\nExcellent!\n', number_review
 map_frame.grid(row = 0, column = 0, padx = 5, pady = 5, sticky = tk.N + tk.W)
 map_frame.columnconfigure(0, minsize = frame_width)
 map_frame.rowconfigure(1, weight = 1)
+# map_frame.grid_propagate(False)
 itinerary_frame.grid(row = 0, column = 1, padx = 5, pady = 5, sticky = tk.N + tk.W)
 itinerary_frame.columnconfigure(0, pad = 0, minsize = frame_width, weight = 1)
 itinerary_frame.rowconfigure(1, minsize = int(0.75 * frame_height))
@@ -175,18 +176,16 @@ for i in xrange(1, review_frame.grid_size()[1]):
 
 
 
-map_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
-image_label.grid(row = 1, column = 0, sticky = tk.W + tk.E)
-map_frame_button.grid(row = 2, column = 0)
-map_frame_hidden_button.grid(row = 3, column = 0)
+image_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
+map_frame_button.grid(row = 1, column = 0)
+map_frame_hidden_button.grid(row = 2, column = 0)
 map_frame_hidden_button.grid_remove()
 
 
-itinerary_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
-itinerary_frame_list.grid(row = 1, column = 0, sticky = tk.W + tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
-itinerary_yscrollbar.grid(row = 1, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
+itinerary_frame_list.grid(row = 0, column = 0, sticky = tk.W + tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
+itinerary_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 
 
-review_frame_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
 
 master.mainloop()
+# master.destroy()	# explicitly destroys the main window when the event loop is terminated; needed for some development envrionments
