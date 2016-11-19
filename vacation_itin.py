@@ -3,6 +3,7 @@ Module for finding the optimal vacation itinerary schedule based on the savings 
 
 """
 
+import scipy
 import pandas
 import networkx
 from geoplotter import *
@@ -65,12 +66,17 @@ class vacation_itinerary:
 	    self.gd.add_edges_from(B_edges1) 
 	    self.gd.add_edges_from(B_edges2)
 
-	    # gets the connected subgraphs of the networkx graph
-	    # assumes the first component is the big subgraph
+	    # gets the connected subgraphs of the networkx graph and finds the subgraph with the largest number of edges
 	    gdcon_temp = list(networkx.weakly_connected_component_subgraphs(self.gd,copy=True))
 	    temp_edge_length = scipy.array([len(p.edges()) for p in gdcon_temp])
 	    idx = scipy.where(temp_edge_length==max(temp_edge_length))[0][0]
 	    self.gdcon = gdcon_temp[idx]
+
+	    print 'There are some duplicate streets'
+	    print '# of F streets: ', len(self.Fds.startlon.values)
+	    print '# of T streets: ', len(self.Tds.startlon.values)
+	    print '# of B streets: ', len(self.Bds.startlon.values)
+	    print 'total: ',len(self.gd.edges())
 
 
 	# finds the shortest path between two nodes using Dijkstra's algorithm in networkx
@@ -86,20 +92,28 @@ class vacation_itinerary:
 		self.DSmap.drawLines(lines = street_lines,color = 'b',linewidth = 0.3)
 
 
+	# plots a single address
+	def drawAddress(self,addressLon,addressLat,marksz=75,co='r'):
+		#cND = self.findClosestNode(addressLat,addressLon,GPH=GPH_draw)
+		#self.DSmap.drawPoints(lat=cND[1],lon=cND[0],color=co,s=marksz)
+		self.DSmap.drawPoints(lat=addressLat,lon=addressLon,color=co,s=marksz)
+
+
+	# draws the path
+	def drawPath(self,path,lw=5):
+	    self.DSmap.drawLines(lines = path,color = 'y',linewidth = lw,alpha = 3)
+
+
+	# formats map
 	def zoomToFit(self):
 		# gets range of longitude and latitude w.r.t. the attractions and zooms map
 		lonLatRan = self.getLonLatRange()
-		self.DSmap.setZoom(lonLatRan[0][0], lonLatRan[1][0], lonLatRan[0][1], lonLatRan[1][1])
+		margin = 0.005
+		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
 		ax.get_yaxis().set_ticks([])
 		matplotlib.pyplot.show()
-
-
-	# plots a single address
-	def drawAddress(self,addressLon,addressLat,GPH_draw,marksz=75,co='r'):
-		cND = self.findClosestNode(addressLat,addressLon,GPH=GPH_draw)
-		self.DSmap.drawPoints(lat=cND[1],lon=cND[0],color=co,s=marksz)
 
 
 	# finds longitude and latitude range w.r.t. lon and lat of attractions
@@ -109,7 +123,7 @@ class vacation_itinerary:
 
 	# finds the closest node to the set of addresses
 	def findClosestNode(self,placeLat,placeLon,GPH):
-	    pos_nodes = scipy.array([])
+	    pos_nodes_zero = True
 	    lonLatRange = self.getLonLatRange()
 	    lonRange = lonLatRange[0]
 	    latRange = lonLatRange[1]
@@ -117,39 +131,39 @@ class vacation_itinerary:
 	    latdf = 0.0005
 	    londf = 0.0005
 	    ct = 0
-	    listLon = list(zip(*GPH.nodes())[0])
-	    listLat = list(zip(*GPH.nodes())[1])
-	    
-	    while len(pos_nodes)==0 and ((latdf<scipy.absolute(latRange[0]-latRange[1])/2) and (londf<scipy.absolute(lonRange[0]-lonRange[1]))):
+	    listLon = [u for u,v in GPH.nodes_iter()]
+	    listLat = [v for u,v in GPH.nodes_iter()]
+
+	    while pos_nodes_zero==True and ((latdf<scipy.absolute(latRange[0]-latRange[1])/2) and (londf<scipy.absolute(lonRange[0]-lonRange[1]))):
 	        pos_nodes = scipy.array([])
 	        ct = ct + 1
-	        # find the latitudes that are within latitude search range
 	        latidx1 = scipy.where((listLat<placeLat+ct*latdf))[0]
 	        tempLatList = [listLat[a] for a in latidx1]
 	        tempLonList = [listLon[a] for a in latidx1]
 	        latidx = scipy.where(tempLatList>placeLat-ct*latdf)[0]
 	        tempLatList = [tempLatList[b] for b in latidx]
 	        tempLonList = [tempLonList[b] for b in latidx]
-	        # find the longitudes that are within longitude search range
 	        lonidx1 = scipy.where(tempLonList>placeLon-ct*londf)[0]
 	        tempLatList = [tempLatList[c] for c in lonidx1]
 	        tempLonList = [tempLonList[c] for c in lonidx1]
 	        lonidx = scipy.where(tempLonList<placeLon+ct*londf)[0]
-	        tempLatList1 = [tempLatList[d] for d in lonidx]
-	        tempLonList1 = [tempLonList[d] for d in lonidx]
-
-	        pos_nodes = scipy.array([list(pos) for pos in zip(tempLonList1,tempLatList1)])
-	        
+	        pos_nodes = [[tempLonList[d],tempLatList[d]] for d in lonidx]
+	        pos_nodes = map(list, zip(*pos_nodes))
+	        print pos_nodes
+	        if len(pos_nodes)!=0:
+	        	pos_nodes_zero = False
+	    
 	    if len(pos_nodes)==0:
 	        return None
 	    else:
-	        dist = scipy.sqrt(scipy.sum(scipy.array([pos_nodes.T[0]-placeLon, pos_nodes.T[1]-placeLat])**2,axis=0))
+	        dist = scipy.sqrt(scipy.sum(scipy.array([pos_nodes[0]-placeLon, pos_nodes[1]-placeLat])**2,axis=0))
 	        # returns the name of the closest node as a string
 	        #return str(pos_nodes[0][scipy.where(dist==min(dist))][0])+' '+str(pos_nodes[1][scipy.where(dist==min(dist))][0])
 	        # recall, [lon, lat]
-	        closeNode = scipy.array([pos_nodes.T[0][scipy.where(dist==min(dist))][0],
-	                            pos_nodes.T[1][scipy.where(dist==min(dist))][0]])
+	        closeNode = [pos_nodes[0][scipy.where(dist==min(dist))[0][0]], pos_nodes[1][scipy.where(dist==min(dist))[0][0]]]
 	        return closeNode
+	        
+	    
 	
 
 	# finds the total reward given an itinerary
@@ -161,26 +175,45 @@ class vacation_itinerary:
 		attr_reward_temp = [self.attr[(self.attr.attraction == nm)].rating.values[0]*10. for nm in itin if (nm != 'hotel')]
 		attr_reward = scipy.sum(attr_reward_temp)
 		print 'Total Attraction Reward = ', attr_reward
-
-		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)), target=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)), weight='time') for p in range(1)] # range(len(itin)-1)]
-		print 'Time Reward (Negative) = ', scipy.sum(time_reward_temp)*TIME_VALUE_OF_MONEY*(-1)
+		"""
+		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)), target=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)), weight='time') for p in [17]]
+		time_reward = scipy.sum(time_reward_temp)*TIME_VALUE_OF_MONEY*(-1)
+		print 'Time Reward (Negative) = ', time_reward
+		"""
 		print
-		print itin[0]
-		temp1 = tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[0]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[0]].lat.values[0],GPH=self.gdcon))
-		print temp1
-		self.drawStreetNetwork(GPH=self.gdcon)
-		self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='g',GPH_draw=self.gdcon)
-		print itin[1]
-		temp2 = tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[1]].lat.values[0],GPH=self.gdcon))
-		print temp2
-		print itin[2]
-		self.drawAddress(addressLon=temp2[0],addressLat=temp2[1],co='y',GPH_draw=self.gdcon)
-		temp3 = tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[2]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[2]].lat.values[0],GPH=self.gdcon))
-		print temp3
-		self.drawAddress(addressLon=temp3[0],addressLat=temp3[1],co='m',GPH_draw=self.gdcon)
-		self.zoomToFit()
+		
+		self.drawStreetNetwork(GPH=self.gd)
 
-		return 0
+		for h in range(19):
+			print itin[h]
+			temp1 = [self.attr[self.attr.attraction==itin[h]].lon.values[0],self.attr[self.attr.attraction==itin[h]].lat.values[0]]
+			print temp1
+			if h==17:
+				self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='r')
+				temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)
+				self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
+			elif h==18:
+				self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='c')
+				temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)
+				self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
+			else:
+				self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='g')
+				temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)
+				self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
+
+		"""
+		print itin[18]
+		temp5 = [self.attr[self.attr.attraction==itin[18]].lon.values[0],self.attr[self.attr.attraction==itin[18]].lat.values[0]]
+		print temp5
+		self.drawAddress(addressLon=temp5[0],addressLat=temp5[1],co='c')
+		temp5_closeN = self.findClosestNode(placeLon=temp5[0],placeLat=temp5[1],GPH=self.gdcon)
+		self.drawAddress(addressLon=temp5_closeN[0],addressLat=temp5_closeN[1],co='c')
+		print temp5_closeN
+		"""
+		#self.zoomToFit()
+
+
+		#return attr_reward + time_reward
 
 
 	def savings_alg(self):
@@ -196,13 +229,26 @@ class vacation_itinerary:
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
 	"""
-	austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gdcon)
-	austin_itinerary.drawAddress(addressLon=austin_itinerary.attr.lon.values[0],addressLat=austin_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
+	austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gd)
+	austin_itinerary.drawAddress(addressLon=austin_itinerary.attr.lon.values[0],addressLat=austin_itinerary.attr.lat.values[0])
 	austin_itinerary.zoomToFit()
 	"""
 	temp = ['hotel']
 	temp.extend(austin_itinerary.attr.attraction.values)
-	austin_itinerary.getItineraryReward(itin=temp)
+	total_reward = austin_itinerary.getItineraryReward(itin=temp)
+	# working on graphing the path
+	for locidx in range(17): #range(len(temp)-1):
+		startN_temp = austin_itinerary.findClosestNode(placeLon=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx]].lon.values[0], placeLat=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx]].lat.values[0],GPH=austin_itinerary.gdcon)
+		startN = (startN_temp[0],startN_temp[1])
+		endN_temp = austin_itinerary.findClosestNode(placeLon=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx+1]].lon.values[0], placeLat=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx+1]].lat.values[0],GPH=austin_itinerary.gdcon)
+		endN = (endN_temp[0],endN_temp[1])
+		p=austin_itinerary.getSPNetworkx(startnode=startN, destnode=endN, GPH=austin_itinerary.gdcon)
+		p_new = [[list(b) for b in p]]
+		austin_itinerary.drawPath(path=p_new,lw=2)
+	austin_itinerary.zoomToFit()
+			
+
+
 
 	
 
