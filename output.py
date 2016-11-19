@@ -23,12 +23,15 @@ master.maxsize(screen_width, screen_height)
 master.geometry("%dx%d%+d%+d" % (int(number_frame * (frame_width + 25)), screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
 
 
+font_content = 'Literata 12'
+font_head = ''
+
 
 # def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
 # 	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
 
 def AddFrame(parentwidget, text, height = frame_height, width = frame_width, relief = tk.SUNKEN):
-	return tk.LabelFrame(parentwidget, text = text,  height = height, width = width, relief = relief, bd = 3, font = 'Literata 20')
+	return tk.LabelFrame(parentwidget, text = text,  height = height, width = width, relief = relief, bd = 3, font = 'Literata 20 bold')
 
 
 # Create 3 frames -- map frame, Itinerary frame, reviews frame
@@ -143,21 +146,43 @@ for i in range(20):
 
 
 # Add elements to review frame
-number_reviews = 0
-review_frame_review_label = []
+# number_reviews = 0
+# review_frame_review_label = []
 
-def CreateReviewLabel(root, text, number_reviews):
-	review_frame_review_label.append(tk.Label(root, text = text, font = 'Literata 16', justify = tk.LEFT, bd = 2, relief = tk.SUNKEN))
-	review_frame_review_label[number_reviews].grid(row = number_reviews, column = 0, sticky = tk.W + tk.E)
-	review_frame_review_label[number_reviews].columnconfigure(0, weight = 1)
+# def CreateReviewLabel(root, text, number_reviews):
+# 	review_frame_review_label.append(tk.Label(root, text = text, font = 'Literata 14', justify = tk.LEFT, bd = 2, relief = tk.SUNKEN, padx = 0, pady = 0))
+# 	review_frame_review_label[number_reviews].grid(row = number_reviews, column = 0, sticky = tk.W + tk.E)
+# 	review_frame_review_label[number_reviews].columnconfigure(0, weight = 1)
 
-CreateReviewLabel(review_frame, 'Sudesh\nRating: 4.3\nGood!\n', number_reviews)
-number_reviews += 1
-CreateReviewLabel(review_frame, 'Melissa\nRating: 4.0\nGood!\n', number_reviews)
-number_reviews += 1
-CreateReviewLabel(review_frame, 'Paul\nRating: 3.9\nExcellent!\n', number_reviews)
+# CreateReviewLabel(review_frame, 'Sudesh\nRating: 4.3\nGood!\n', number_reviews)
+# number_reviews += 1
+# CreateReviewLabel(review_frame, 'Melissa\nRating: 4.0\nGood!\n', number_reviews)
+# number_reviews += 1
+# CreateReviewLabel(review_frame, 'Paul\nRating: 3.9\nExcellent!\n', number_reviews)
 
 
+review_frame_review_text = tk.Text(review_frame, bd = 1, exportselection = 1, font = font_content, width = 45)
+text = 'Sudesh\nRating: 4.3\nGood!\n\n' + 'Melissa\nRating: 4.0\nGood!\n\n' + 'Paul\nRating: 3.9\nExcellent!\n\n'
+review_frame_review_text.insert(tk.END, text)
+review_frame_review_text.config(state = tk.DISABLED)
+# Add scrollbars
+review_text_yscrollbar = tk.Scrollbar(review_frame)
+review_text_xscrollbar = tk.Scrollbar(review_frame, orient = tk.HORIZONTAL)
+# attach review text to scrollbars
+review_frame_review_text.config(yscrollcommand = review_text_yscrollbar.set, xscrollcommand = review_text_xscrollbar.set)
+review_text_yscrollbar.config(command = review_frame_review_text.yview)
+review_text_xscrollbar.config(command = review_frame_review_text.xview)
+
+
+# review_frame_review_text = []
+
+# review_frame_review_text.append(tk.Text(review_frame, bd = 1, cursor = 'spider', exportselection = 1, font = 'Literata 12', width = 45))
+# review_frame_review_text[0].grid(row = 0, column = 0, sticky = tk.W)
+# review_frame_review_text[0].insert(tk.END, 'Hello\nBrother')
+# # review_frame_review_text[0].config(state = tk.DISABLED)
+# review_frame_review_text[0].insert(tk.END, 'Hello\nBrother')
+# for x in xrange(1,1000):
+# 	review_frame_review_text[0].insert(tk.END, 'Hello\nBrother')
 
 
 
@@ -185,6 +210,10 @@ map_frame_hidden_button.grid_remove()
 itinerary_frame_list.grid(row = 0, column = 0, sticky = tk.W + tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 itinerary_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 
+
+review_frame_review_text.grid(row = 0, column = 0, sticky = tk.W + tk.E)
+review_text_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
+review_text_xscrollbar.grid(row = 1, column = 0, sticky = tk.N + tk.W + tk.E, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 
 
 master.mainloop()
