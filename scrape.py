@@ -147,6 +147,19 @@ edges.to_csv('austin_edges.csv',index=False) # for testing
 # **********************
 print nodes # nodes df
 print edges # edges df
+import vacation_itin
+
+austin_itinerary = vacation_itin.vacation_itinerary(
+	city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+"""
+austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gdcon)
+austin_itinerary.drawAddress(addressLon=austin_itinerary.attr.lon.values[0],addressLat=austin_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
+austin_itinerary.zoomToFit()
+"""
+temp = ['hotel']
+temp.extend(austin_itinerary.attr.attraction.values)
+print austin_itinerary.getItineraryReward(itin=temp)
+
 
 # **********************
 # Display road network and nodes in geoplotter
