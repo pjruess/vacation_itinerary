@@ -8,36 +8,39 @@ from PIL import Image, ImageTk
 
 master = tk.Tk()
 master.title('Optimal Itinerary')
+master.resizable(0, 0)	# cannot resize the master window in x or y direction
 
 # Works only if there is a single display; otherwise sums the value from each display
 screen_width = master.winfo_screenwidth()
 screen_height = master.winfo_screenheight()
-screen_width_factor = 0.9
+screen_width_factor = 0.93
 screen_height_factor = 0.8
+usable_screen_width = screen_width_factor * screen_width
+usable_screen_height = screen_height_factor * screen_height
 screen_size_ratio = 9.0 / 16.0
 number_frame = 3	# number of frames
-frame_width = int(screen_width_factor * screen_width) / number_frame
-frame_height = int(screen_height_factor * screen_height)
-master.minsize(frame_width, int(screen_size_ratio * frame_width))
+frame_width = int( (usable_screen_width - ( number_frame + 1) * 5 - 8) / number_frame)
+frame_height = int(usable_screen_height)
+
+master.minsize(frame_width + (5 * (number_frame + 1)) + 5, int(screen_size_ratio * frame_width))
 master.maxsize(screen_width, screen_height)
-master.geometry("%dx%d%+d%+d" % (int(number_frame * (frame_width + 25)), screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
+master.geometry("%dx%d%+d%+d" % (screen_width, screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
 
 
-font_content = 'Literata 12'
-font_head = ''
+font_content = 'Calibri 12'
+font_head = ('Cambria', 24, 'bold')
+# font_head = 'Cambria 20 bold'
+input_map = 'ToRudys.png'
 
 
-# def AddFrame(parentwidget, width = frame_width, height = frame_height, relief = tk.SUNKEN):
-# 	return tk.Frame(parentwidget, height = height, width = width, relief = relief, bd = 3)
-
-def AddFrame(parentwidget, text, height = frame_height, width = frame_width, relief = tk.SUNKEN):
-	return tk.LabelFrame(parentwidget, text = text,  height = height, width = width, relief = relief, bd = 3, font = 'Literata 20 bold')
+def AddLabelFrame(parentwidget, text, height = frame_height, width = frame_width, relief = tk.SUNKEN, font = font_head):
+	return tk.LabelFrame(parentwidget, text = text,  height = height, width = width, relief = relief, bd = 2, font = font, labelanchor = tk.N + tk.W , padx = 1, pady = 1)
 
 
 # Create 3 frames -- map frame, Itinerary frame, reviews frame
-map_frame = AddFrame(master, text = 'Map')
-itinerary_frame = AddFrame(master, text = 'Schedule')
-review_frame = AddFrame(master, text = 'Reviews')
+map_frame = AddLabelFrame(master, text = 'Map')
+itinerary_frame = AddLabelFrame(master, text = 'Schedule')
+review_frame = AddLabelFrame(master, text = 'Reviews')
 
 
 # Create Menu items
@@ -86,49 +89,48 @@ authormenu.add_command(label = 'Sudesh Agrawal', command = lambda: MailAuthor('S
 
 # Add elements to map frame
 # Add map
-image = Image.open('ToRudys.png')
+image = Image.open(input_map)
 width, height = image.size
+map_ratio = float(height) / width
 map_width = frame_width
-map_height = (map_width * height) / width
+map_height = int((map_width * height) / width)
+
+if width > (2.2 * frame_width):
+	width = int(2.2 * frame_width)
+	height = int(2.2 * frame_width * map_ratio)
+	image = image.resize((width, height), Image.ANTIALIAS)
+
 resized_image = image.resize((map_width, map_height), Image.ANTIALIAS)
-route_map = ImageTk.PhotoImage(resized_image)
+
+route_map = ImageTk.PhotoImage(image)
+resized_route_map = ImageTk.PhotoImage(resized_image)
 image_label = tk.Label(map_frame, image = route_map, relief = tk.SUNKEN)
+resized_image_label = tk.Label(map_frame, image = resized_route_map, relief = tk.SUNKEN)
 image_label.image = route_map
+resized_image_label.image = resized_route_map
+
 # Add button to remove everything save the map
 def ZoomMap():
-	print map_frame['width']
-	itinerary_frame.grid_remove()
+	if width > (2 * frame_width):
+		itinerary_frame.grid_remove()
 	review_frame.grid_remove()
-	map_frame_button.grid_remove()
-	map_frame_hidden_button.grid()
-
-	image = Image.open('ToRudys.png')
-	route_map = ImageTk.PhotoImage(image)
-	image_label['image'] = route_map
-	image_label.image = route_map
-	
+	map_frame_zoom_button.grid_remove()
+	resized_image_label.grid_remove()
+	map_frame_restore_button.grid()
+	image_label.grid()
 
 def RestoreMap():
-	itinerary_frame.grid()
+	map_frame_restore_button.grid_remove()
+	image_label.grid_remove()
+	if width > (2 * frame_width):
+		itinerary_frame.grid()
 	review_frame.grid()
-	map_frame_hidden_button.grid_remove()
-	map_frame_button.grid()
+	map_frame_zoom_button.grid()
+	resized_image_label.grid()
+	
 
-	map_frame.config(width = frame_width, height = frame_height)
-	image = Image.open('ToRudys.png')
-	width, height = image.size
-	map_width = frame_width
-	map_height = (map_width * height) / width
-	resized_image = image.resize((map_width, map_height), Image.ANTIALIAS)
-	# resized_image = image.resize((1024, frame_height), Image.ANTIALIAS)
-	route_map = ImageTk.PhotoImage(image)
-	image_label.config(image = route_map)
-	# image_label['image'] = route_map
-	image_label.image = route_map
-
-
-map_frame_button = tk.Button(map_frame, text = 'Zoom', font = '16', command = ZoomMap)
-map_frame_hidden_button = tk.Button(map_frame, text = 'Restore', font = '16', command = RestoreMap)
+map_frame_zoom_button = tk.Button(map_frame, text = 'Zoom', font = '16', command = ZoomMap)
+map_frame_restore_button = tk.Button(map_frame, text = 'Restore', font = '16', command = RestoreMap)
 
 
 
@@ -161,17 +163,15 @@ for i in range(20):
 # CreateReviewLabel(review_frame, 'Paul\nRating: 3.9\nExcellent!\n', number_reviews)
 
 
-review_frame_review_text = tk.Text(review_frame, bd = 1, exportselection = 1, font = font_content, width = 45)
-text = 'Sudesh\nRating: 4.3\nGood!\n\n' + 'Melissa\nRating: 4.0\nGood!\n\n' + 'Paul\nRating: 3.9\nExcellent!\n\n'
+review_frame_review_text = tk.Text(review_frame, bd = 1, exportselection = 1, font = font_content, width = 45, wrap = tk.WORD)
+text = 'Sudesh\nRating: 4.3\nGood!\n\n' + 'Melissa\nRating: 4.0\nGood! friendly staff, beautiful interior and good food provide satisfaction and its central bar looks perfectly awesome in dim light. Going there is a good option if you want to spend some personal time with good food n drinks.\n\n' + 'Paul\nRating: 3.9\nExcellent!\n\n'
 review_frame_review_text.insert(tk.END, text)
 review_frame_review_text.config(state = tk.DISABLED)
 # Add scrollbars
 review_text_yscrollbar = tk.Scrollbar(review_frame)
-review_text_xscrollbar = tk.Scrollbar(review_frame, orient = tk.HORIZONTAL)
 # attach review text to scrollbars
-review_frame_review_text.config(yscrollcommand = review_text_yscrollbar.set, xscrollcommand = review_text_xscrollbar.set)
+review_frame_review_text.config(yscrollcommand = review_text_yscrollbar.set)
 review_text_yscrollbar.config(command = review_frame_review_text.yview)
-review_text_xscrollbar.config(command = review_frame_review_text.xview)
 
 
 # review_frame_review_text = []
@@ -202,9 +202,11 @@ for i in xrange(1, review_frame.grid_size()[1]):
 
 
 image_label.grid(row = 0, column = 0, sticky = tk.W + tk.E)
-map_frame_button.grid(row = 1, column = 0)
-map_frame_hidden_button.grid(row = 2, column = 0)
-map_frame_hidden_button.grid_remove()
+image_label.grid_remove()
+resized_image_label.grid(row = 1, column = 0, sticky = tk.W + tk.E)
+map_frame_zoom_button.grid(row = 2, column = 0)
+map_frame_restore_button.grid(row = 3, column = 0)
+map_frame_restore_button.grid_remove()
 
 
 itinerary_frame_list.grid(row = 0, column = 0, sticky = tk.W + tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
@@ -213,7 +215,6 @@ itinerary_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx
 
 review_frame_review_text.grid(row = 0, column = 0, sticky = tk.W + tk.E)
 review_text_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
-review_text_xscrollbar.grid(row = 1, column = 0, sticky = tk.N + tk.W + tk.E, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 
 
 master.mainloop()
