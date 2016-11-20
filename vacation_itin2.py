@@ -127,7 +127,7 @@ class vacation_itinerary:
 
 
 	# formats map
-	def zoomToFit(self):
+	def zoomToFit(self,filename):
 		# gets range of longitude and latitude w.r.t. the attractions and zooms map
 		lonLatRan = self.getLonLatRange()
 		margin = 0.05
@@ -135,7 +135,8 @@ class vacation_itinerary:
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
 		ax.get_yaxis().set_ticks([])
-		matplotlib.pyplot.show()
+		if filename: matplotlib.pyplot.savefig(filename)
+		else: matplotlib.pyplot.show()
 
 
 	# finds longitude and latitude range w.r.t. lon and lat of attractions
@@ -313,9 +314,3 @@ if __name__ == '__main__':
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
 	#matplotlib.pyplot.savefig('optimal_itinerary.png')
 	austin_itinerary.zoomToFit()
-	
-
-
-
-	
-

@@ -1,3 +1,5 @@
+import argparse
+import ast
 import sys
 from datetime import datetime
 if sys.version_info[0] < 3:
@@ -7,6 +9,23 @@ else:
 from PIL import Image, ImageTk
 import read_google as gapi
 
+# **********************
+# Read in arguments passed in from Tkinter gui in scrape_gui.py
+# **********************
+parser = argparse.ArgumentParser() # allow the creation of arguments
+namespace,unparsed = parser.parse_known_args() # unpack arguments
+
+def parse_arg(arg):
+	k,v = arg.split('=',1) # split over equal sign (ie. extract (q, 'query'))
+	try:
+		v = ast.literal_eval(v) # evaluate the string as a python literal
+	except ValueError:
+		pass # if not, evaluate as string
+	return k.lstrip('-'),v # parsed argument
+
+d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
+input_map = d['map']
+print input_map
 
 master = tk.Tk()
 master.title('Optimal Itinerary')
@@ -34,7 +53,7 @@ master.geometry("%dx%d%+d%+d" % (screen_width, screen_height, 0, 0))		# "%dx%d%+
 font_content = 'Calibri 12'
 font_head = ('Cambria', 24, 'bold')
 # font_head = 'Cambria 20 bold'
-input_map = 'ToRudys.png'
+# input_map = 'ToRudys.png'
 
 myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
 myresponse = gapi.GetResponse(myurl)
