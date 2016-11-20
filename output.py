@@ -181,10 +181,13 @@ itinerary_frame_list.selection_set(0)
 # itinerary_list.set('A B')
 
 
+reviewer_names = []
+
 def GetReviews(event):
 	# delete previous reviews
 	review_frame_review_text.config(state = tk.NORMAL)	# enable editing of text
 	review_frame_review_text.delete('1.0', tk.END)
+	del reviewer_names[:]
 
 	# provideint 'Getting reviews for place in the list at ({0}, {1})'.format(event.x, event.y)
 	items = map(int, itinerary_frame_list.curselection())
@@ -205,7 +208,8 @@ def GetReviews(event):
 		if myresponse['status'] == 'OK':
 			result = myresponse['result']
 			if 'name' in result:
-				review_content += '{}\n'.format(result['name'].encode('utf-8'))
+				# review_content += '{}\n\n'.format(result['name'].encode('utf-8'))
+				placename_main = result['name'].encode('utf-8')
 			if 'rating' in result:
 				review_content += 'Rating: {}\n'.format(result['rating'])
 			if 'reviews' in result:
@@ -214,13 +218,40 @@ def GetReviews(event):
 					if ('author_name' in result['reviews'][i]) and ('text' in result['reviews'][i]) and ('time' in result['reviews'][i]):
 						review_detail = result['reviews'][i]
 						review_detail_name = review_detail['author_name'].encode('utf-8')
+						reviewer_names.append(review_detail_name)
 						review_detail_comment = review_detail['text'].encode('utf-8')
 						review_detail_time = datetime.fromtimestamp(review_detail['time']).strftime('%c')
-						review_content += '{0}: {1}\nSubmitted on: {2}\n\n'.format(review_detail_name, review_detail_comment, review_detail_time)	
+						review_content += '{0}: {1}\nSubmitted on: {2}\n\n'.format(review_detail_name, review_detail_comment, review_detail_time)
 	else:
 		review_content = 'Reviews not available! TRY AGAIN!\n'
 
 	review_frame_review_text.insert(tk.END, review_content)
+	countVar = tk.StringVar()
+	# Make the reviewer names bold
+	pos = '1.0'
+	for name in reviewer_names:
+		pos = review_frame_review_text.search(name + ':', pos, stopindex = 'end', count = countVar)
+		if pos:
+			review_frame_review_text.tag_add('bold', pos, '{}+{}c'.format(pos, countVar.get()))
+			pos = pos + '+1c'
+	# Make 'Submitted on:' bold
+	pos = '1.0'
+	while pos:
+		pos = review_frame_review_text.search('Submitted on:', pos, stopindex = "end", count = countVar)
+		if pos:
+			review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+			pos = pos + '+1c'
+	# Make 'Rating:' bold
+	pos = review_frame_review_text.search('Rating:', '1.0', stopindex = "end", count = countVar)
+	if pos:
+		review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+	# Make the place name bold
+	pos = review_frame_review_text.search(placename_main, '1.0', stopindex = "end", count = countVar)
+	if pos:
+		review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+
+	review_frame_review_text.tag_configure('bold', font = font_content + ' bold')
+
 	review_frame_review_text.config(state = tk.DISABLED)	# disable editing of text
 
 
@@ -310,48 +341,30 @@ review_text_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, pa
 
 
 
-countVar = tk.StringVar()
-pos = '1.0'
-# review_frame_review_text_last_line = review_frame_review_text.index('end')
-# flag = True
+# countVar = tk.StringVar()
+# pos = '1.0'
 
-# pos = review_frame_review_text.search('Submitted on:', pos, stopindex = 'end', count = countVar)
+# for name in reviewer_names:
+# 	pos = review_frame_review_text.search(name + ':', pos, stopindex = "end", count = countVar)
+# 	if pos:
+# 		review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+# 		pos = pos + '+1c'
+
+# pos = '1.0'
+# while pos:
+# 	pos = review_frame_review_text.search('Submitted on:', pos, stopindex = "end", count = countVar)
+# 	if pos:
+# 		review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+# 		pos = pos + '+1c'
+
+# pos = review_frame_review_text.search('Rating:', '1.0', stopindex = "end", count = countVar)
 # if pos:
-# 	review_frame_review_text.tag_add('time', pos, "{}+{}c".format(pos, countVar.get()))
-# 	review_frame_review_text.tag_configure('time', font = font_content + ' bold')
-# print pos
-
-# print review_frame_review_text.index(pos + 'linestart')
-# print review_frame_review_text_last_line
-# if review_frame_review_text.index(pos + 'linestart') == review_frame_review_text_last_line:
-# 	print False
+# 	review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
 
 
-while pos:
-	pos = review_frame_review_text.search('Submitted on:', pos, stopindex = "end", count = countVar)
-	if pos:
-		review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
-		pos = pos + '+1c'
+# review_frame_review_text.tag_configure('bold', font = font_content + ' bold')
 
-pos = review_frame_review_text.search('Rating:', '1.0', stopindex = "end", count = countVar)
-if pos:
-	review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
-
-
-review_frame_review_text.tag_configure('bold', font = font_content + ' bold')
-
-	# if review_frame_review_text.index(pos + 'linestart') == review_frame_review_text_last_line:
-	# 	flag = False
-
-
-# pos = review_frame_review_text.search('Submitted on:', '1.0', stopindex="end", count=countVar)
-# review_frame_review_text.tag_add('time', pos, "{}+{}c".format(pos, countVar.get()))
-# review_frame_review_text.tag_configure('time', font = font_content + ' bold')
-# pos = review_frame_review_text.search('Submitted on:', str(pos) + '+1c', stopindex="end", count=countVar)
-# review_frame_review_text.tag_add('time', pos, "{}+{}c".format(pos, countVar.get()))
-# review_frame_review_text.tag_configure('time', font = font_content + ' bold')
-# print review_frame_review_text.index('end')
-
+	
 # pos = review_frame_review_text.search(':', '1.0', stopindex="end", count=countVar)
 # print review_frame_review_text.index(pos + 'linestart')
 
