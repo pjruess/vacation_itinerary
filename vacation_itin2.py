@@ -16,9 +16,11 @@ class vacation_itinerary:
 
 	def __init__(self,city_file,attractions_file,**kwargs):
 		# reads road network file
-		self.ds = pandas.read_csv(city_file)
+		#self.ds = pandas.read_csv(city_file)
+		self.ds = city_file
 		# reads attraction address file
-		self.attr = pandas.read_csv(attractions_file)
+		#self.attr = pandas.read_csv(attractions_file)
+		self.attr = attractions_file
 		self.initial_itinerary = ['hotel']
 		self.initial_itinerary.extend(self.attr.attraction.values)
 		# creates GeoPlotter object
@@ -84,6 +86,8 @@ class vacation_itinerary:
 	    temp_edge_length = scipy.array([len(p.edges()) for p in gdcon_temp])
 	    idx = scipy.where(temp_edge_length==max(temp_edge_length))[0][0]
 	    self.gdcon = gdcon_temp[idx]
+	    print 'NetworkX graph created.'
+	    print
 
 
 	# finds the shortest path between two nodes using Dijkstra's algorithm in networkx
@@ -103,14 +107,14 @@ class vacation_itinerary:
 		
 
 	# plots address(es) - addresLon and addressLat can be lists
-	def drawAddress(self,addressLon,addressLat,marksz=75,co='r'):
+	def drawAddress(self,addressLon,addressLat,marksz=75,co='g'):
 		self.DSmap.drawPoints(lat=addressLat,lon=addressLon,color=co,s=marksz)
 
 
 	# draws the path
-	def drawPath(self,path,lw=2.5):
+	def drawPath(self,path,lw=3):
 		stLines = [[[float(dw) for dw in g.split()] for g in path]]
-		self.DSmap.drawLines(lines = stLines,color = 'y',linewidth = lw,alpha = 1)
+		self.DSmap.drawLines(lines = stLines,color = 'orange',linewidth = lw,alpha = 1)
 
 
 	# draws the itinerary path
@@ -242,7 +246,7 @@ class vacation_itinerary:
 
 
 	def solve_optimal_itinerary(self,itin):
-
+		print 'Start solving for optimal itinerary...'
 		# Select n random attractions later in the list to node in question
 		maxCost = self.getItineraryReward(itin=itin)
 		itinTemp = list(itin)
@@ -267,7 +271,7 @@ class vacation_itinerary:
 			print
 			i = i + 1			
 
-		itinFinal = itin[0:i-1]
+		itinFinal = itin[0:i-2]
 		itinFinal.extend(['hotel'])
 		return itinFinal
 
@@ -293,8 +297,8 @@ class vacation_itinerary:
 			nodes_temp = scipy.array([self.findClosestNode(placeLon=self.attr[self.attr.attraction==h].lon.values[0],placeLat=self.attr[self.attr.attraction==h].lat.values[0],GPH=self.gdcon)[1] for h in itin])
 			attr_lon = nodes_temp[:,0]
 			attr_lat = nodes_temp[:,1]
-		self.DSmap.drawPoints(lat=attr_lat[0],lon=attr_lon[0],color='m',s=75)
-		self.DSmap.drawPoints(lat=attr_lat[1:],lon=attr_lon[1:],color='r',s=75)
+		self.DSmap.drawPoints(lat=attr_lat[0],lon=attr_lon[0],color='r',s=75)
+		self.DSmap.drawPoints(lat=attr_lat[1:-1],lon=attr_lon[1:-1],color='g',s=75)
 
 
 if __name__ == '__main__':
@@ -302,6 +306,8 @@ if __name__ == '__main__':
 	optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
 	print optimalItin
 	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
+	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
+	print 
 	austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gd)
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
