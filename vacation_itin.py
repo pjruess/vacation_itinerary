@@ -149,7 +149,7 @@ class vacation_itinerary:
 	        lonidx = scipy.where(tempLonList<placeLon+ct*londf)[0]
 	        pos_nodes = [[tempLonList[d],tempLatList[d]] for d in lonidx]
 	        pos_nodes = map(list, zip(*pos_nodes))
-	        print pos_nodes
+	        #print pos_nodes
 	        if len(pos_nodes)!=0:
 	        	pos_nodes_zero = False
 	    
@@ -175,16 +175,16 @@ class vacation_itinerary:
 		attr_reward_temp = [self.attr[(self.attr.attraction == nm)].rating.values[0]*10. for nm in itin if (nm != 'hotel')]
 		attr_reward = scipy.sum(attr_reward_temp)
 		print 'Total Attraction Reward = ', attr_reward
-		"""
-		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)), target=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)), weight='time') for p in [17]]
+		
+		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)), target=tuple(self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)), weight='time') for p in range(len(itin)-1)]
 		time_reward = scipy.sum(time_reward_temp)*TIME_VALUE_OF_MONEY*(-1)
 		print 'Time Reward (Negative) = ', time_reward
-		"""
+		
 		print
 		
 		self.drawStreetNetwork(GPH=self.gd)
 
-		for h in range(19):
+		for h in range(len(itin)):
 			print itin[h]
 			temp1 = [self.attr[self.attr.attraction==itin[h]].lon.values[0],self.attr[self.attr.attraction==itin[h]].lat.values[0]]
 			print temp1
@@ -234,10 +234,11 @@ if __name__ == '__main__':
 	austin_itinerary.zoomToFit()
 	"""
 	temp = ['hotel']
-	temp.extend(austin_itinerary.attr.attraction.values)
+	# took out Zilker because not working in shortest path
+	temp.extend(austin_itinerary.attr[austin_itinerary.attr.attraction != 'Zilker Metropolitan Park'].attraction.values)
 	total_reward = austin_itinerary.getItineraryReward(itin=temp)
 	# working on graphing the path
-	for locidx in range(17): #range(len(temp)-1):
+	for locidx in range(2): #range(len(temp)-1):
 		startN_temp = austin_itinerary.findClosestNode(placeLon=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx]].lon.values[0], placeLat=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx]].lat.values[0],GPH=austin_itinerary.gdcon)
 		startN = (startN_temp[0],startN_temp[1])
 		endN_temp = austin_itinerary.findClosestNode(placeLon=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx+1]].lon.values[0], placeLat=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx+1]].lat.values[0],GPH=austin_itinerary.gdcon)
