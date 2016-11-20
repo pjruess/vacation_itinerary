@@ -147,31 +147,30 @@ edges.to_csv('austin_edges.csv',index=False) # for testing
 import vacation_itin2
 import matplotlib.pyplot as plt
 
-if not os.path.isfile('optimal_itinerary.png'):
-	city_itinerary = vacation_itin2.vacation_itinerary(
-		city_file=edges,attractions_file=nodes)
-	print 'Itinerary class initiated'
-	"""
-	city_itinerary.drawStreetNetwork(GPH=city_itinerary.gdcon)
-	city_itinerary.drawAddress(addressLon=city_itinerary.attr.lon.values[0],addressLat=city_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
-	city_itinerary.zoomToFit()
-	"""
-	# temp = ['hotel']
-	# temp.extend(city_itinerary.attr.attraction.values)
-	# print city_itinerary.getItineraryReward(itin=temp)
-	# city_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
-	optimalItin = city_itinerary.solve_optimal_itinerary(
-		itin=city_itinerary.initial_itinerary)
-	print optimalItin
-	print 'total reward: ', city_itinerary.getItineraryReward(
-		itin=optimalItin)
-	city_itinerary.drawStreetNetwork(GPH=city_itinerary.gd)
-	print 'Street network drawn'
-	city_itinerary.drawItineraryPath(itin=optimalItin)
-	print 'Shortest path drawn'
-	city_itinerary.draw_all_attractions(itin=optimalItin)
-	print 'Attractions drawn'
-	city_itinerary.zoomToFit('optimal_itinerary.png')
+city_itinerary = vacation_itin2.vacation_itinerary(
+	city_file=edges,attractions_file=nodes)
+print 'Itinerary class initiated'
+"""
+city_itinerary.drawStreetNetwork(GPH=city_itinerary.gdcon)
+city_itinerary.drawAddress(addressLon=city_itinerary.attr.lon.values[0],addressLat=city_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
+city_itinerary.zoomToFit()
+"""
+# temp = ['hotel']
+# temp.extend(city_itinerary.attr.attraction.values)
+# print city_itinerary.getItineraryReward(itin=temp)
+# city_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+optimalItin = city_itinerary.solve_optimal_itinerary(
+	itin=city_itinerary.initial_itinerary)
+print optimalItin
+print 'total reward: ', city_itinerary.getItineraryReward(
+	itin=optimalItin)
+city_itinerary.drawStreetNetwork(GPH=city_itinerary.gd)
+print 'Street network drawn'
+city_itinerary.drawItineraryPath(itin=optimalItin)
+print 'Shortest path drawn'
+city_itinerary.draw_all_attractions(itin=optimalItin)
+print 'Attractions drawn'
+city_itinerary.zoomToFit('optimal_itinerary.png')
 
 # **********************
 # Display road network and nodes in tkinter gui
