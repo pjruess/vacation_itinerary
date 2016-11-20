@@ -5,7 +5,7 @@ import scipy
 import os
 import shapefile # https://github.com/GeospatialPython/pyshp
 import geocoder
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString
 
 # **********************
 # Read in arguments passed in from Tkinter gui in scrape_gui.py
@@ -52,7 +52,7 @@ nodes['lat'] = lat.astype(float).round(9) # round to 6th decimal
 nodes['lon'] = lon.astype(float).round(9) # round to 6th decimal
 
 del nodes['latlon']
-# nodes.to_csv('austin_nodes.csv',index=False) # for testing
+nodes.to_csv('austin_nodes.csv',index=False) # for testing
 
 # **********************
 # Convert road network into pandas dataframe
@@ -128,9 +128,9 @@ edges.columns = ['oneway','fclass','miles','startlon','startlat','endlon','endla
 startpoints = []
 endpoints = []
 for i in range(len(edges)):
-	sp = Point(edges['startlon'].values[i],edges['startlat'].values[i])
+	sp = (edges['startlon'].values[i],edges['startlat'].values[i])
 	startpoints.append(sp) # shapely pointfile of startpoint
-	ep = Point(edges['endlon'].values[i],edges['endlat'].values[i])
+	ep = (edges['endlon'].values[i],edges['endlat'].values[i])
 	endpoints.append(ep) # shapely pointfile of endpoint
 
 lines = []
@@ -139,7 +139,7 @@ for a,b in zip(startpoints,endpoints):
 	lines.append(l.wkt) # add as well-known-text format
 
 edges['LINESTRING'] = lines # add to edges dataset
-# edges.to_csv('austin_edges.csv',index=False) # for testing
+edges.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
 # Create road network
@@ -179,7 +179,9 @@ if not os.path.isfile('optimal_itinerary.png'):
 
 output_script = 'output.py'
 map_file = 'optimal_itinerary.png'
-os.system('python ' + output_script + ' -map=' + map_file)
+os.system('python ' + output_script + ' -map=' + map_file
+	+ ' -city=' + d['city'] + ' -state=' + d['state']
+	+ ' -path=' + str(optimalItin))
 
 # **********************
 # Display road network and nodes in qgis

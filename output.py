@@ -24,7 +24,9 @@ def parse_arg(arg):
 	return k.lstrip('-'),v # parsed argument
 
 d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
-if d: input_map = d['map']
+input_map = d['map']
+
+print d['path']
 
 master = tk.Tk()
 master.title('Optimal Itinerary')
@@ -57,8 +59,8 @@ myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
 myresponse = gapi.GetResponse(myurl)
 myresults = gapi.GetResults(myresponse)
 input_country = 'US'
-input_city = 'Austin'
-input_state = 'TX'
+input_city = d['city']
+input_state = d['state']
 input_itinerary = []
 
 if len(myresults) > 0:
