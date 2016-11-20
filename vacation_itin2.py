@@ -16,11 +16,11 @@ class vacation_itinerary:
 
 	def __init__(self,city_file,attractions_file,**kwargs):
 		# reads road network file
-		#self.ds = pandas.read_csv(city_file)
-		self.ds = city_file
+		self.ds = pandas.read_csv(city_file)
+		#self.ds = city_file
 		# reads attraction address file
-		#self.attr = pandas.read_csv(attractions_file)
-		self.attr = attractions_file
+		self.attr = pandas.read_csv(attractions_file)
+		#self.attr = attractions_file
 		self.initial_itinerary = ['hotel']
 		self.initial_itinerary.extend(self.attr.attraction.values)
 		# creates GeoPlotter object
@@ -127,21 +127,28 @@ class vacation_itinerary:
 
 
 	# formats map
-	def zoomToFit(self,filename):
+	def zoomToFit(self,itin,filename=False):
 		# gets range of longitude and latitude w.r.t. the attractions and zooms map
-		lonLatRan = self.getLonLatRange()
+		lonLatRan = self.getLonLatRange(itin_list=itin)
 		margin = 0.05
 		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
 		ax.get_yaxis().set_ticks([])
-		if filename: matplotlib.pyplot.savefig(filename)
-		else: matplotlib.pyplot.show()
+		if filename: 
+			matplotlib.pyplot.savefig(filename)
+		else: 
+			matplotlib.pyplot.show()
 
 
 	# finds longitude and latitude range w.r.t. lon and lat of attractions
-	def getLonLatRange(self):
-		return [[min(self.attr.lon.values),max(self.attr.lon.values)],[min(self.attr.lat.values),max(self.attr.lat.values)]]
+	def getLonLatRange(self,itin_list=False):
+		if itin_list: 
+			lon_list = [self.attr[self.attr.attraction == h].lon.values[0] for h in itin_list]
+			lat_list = [self.attr[self.attr.attraction == h].lat.values[0] for h in itin_list]
+			return [[min(lon_list),max(lon_list)],[min(lat_list),max(lat_list)]]
+		else: 
+			return [[min(self.attr.lon.values),max(self.attr.lon.values)],[min(self.attr.lat.values),max(self.attr.lat.values)]]
 
 
 	# finds the closest node to the set of addresses
@@ -196,8 +203,6 @@ class vacation_itinerary:
 
 	# finds the total reward given an itinerary
 	def getItineraryReward(self,itin):
-		#print itin
-
 		# calculates reward for visiting all the attractions in the itinerary
 		# reward is in terms of USD
 		attr_reward_temp = [self.attr[(self.attr.attraction == nm)].rating.values[0]*10. for nm in itin if (nm != 'hotel')]
@@ -205,32 +210,6 @@ class vacation_itinerary:
 
 		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)[0], target=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)[0], weight='time') for p in range(len(itin)-1)]
 		time_reward = scipy.sum(time_reward_temp)*TIME_VALUE_OF_MONEY*(-1)
-		#print 'Time Reward (Negative) = ', time_reward
-		
-
-		"""
-		self.drawStreetNetwork(GPH=self.gd)
-		
-		for h in range(len(itin)):
-			temp1 = [self.attr[self.attr.attraction==itin[h]].lon.values[0],self.attr[self.attr.attraction==itin[h]].lat.values[0]]
-			
-			#self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='g')
-			#temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)[1]
-			#self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
-			
-			if h==17:
-				self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='r')
-				temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)[1]
-				self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
-			elif h==18:
-				self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='c')
-				temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)[1]
-				self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
-			else:
-				self.drawAddress(addressLon=temp1[0],addressLat=temp1[1],co='g')
-				temp1_closeN = self.findClosestNode(placeLon=temp1[0],placeLat=temp1[1],GPH=self.gdcon)[1]
-				self.drawAddress(addressLon=temp1_closeN[0],addressLat=temp1_closeN[1],co='m')
-		"""
 
 		return attr_reward + time_reward
 
@@ -245,7 +224,8 @@ class vacation_itinerary:
 		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)[0], target=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)[0], weight='time') for p in range(len(itin)-1)]
 		return scipy.sum(time_reward_temp) + 2*(len(itin))
 
-
+	# solves for the optimal itinerary for one day
+	# output: a list of the names of the attractions for one day starting and ending at the hotel
 	def solve_optimal_itinerary(self,itin):
 		print 'Start solving for optimal itinerary...'
 		# Select n random attractions later in the list to node in question
@@ -313,4 +293,4 @@ if __name__ == '__main__':
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
 	#matplotlib.pyplot.savefig('optimal_itinerary.png')
-	austin_itinerary.zoomToFit()
+	austin_itinerary.zoomToFit(itin=optimalItin)
