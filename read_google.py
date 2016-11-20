@@ -4,7 +4,7 @@ import urllib, json
 # pip install Image
 import PIL.Image as img
 
-googleplaces_webservice_key = 'AIzaSyBQAXQgerdCsk-W1r5NimKccumd32lPzPs'
+googleplaces_webservice_key = 'AIzaSyBsILob4SDyR5z0IurzRUylOjioqiTxXP4'
 
 def build_url_text_search(query, output = 'json', key = googleplaces_webservice_key, **kwargs):
 	"""

@@ -207,7 +207,7 @@ def GetReviews(event):
 			if 'name' in result:
 				review_content += '{}\n'.format(result['name'].encode('utf-8'))
 			if 'rating' in result:
-				review_content += 'Ratingg: {}\n'.format(result['rating'])
+				review_content += 'Rating: {}\n'.format(result['rating'])
 			if 'reviews' in result:
 				for i in xrange(0, min(reviews_required, len(result['reviews']))):
 					# review_content += result['reviews'].replace('\t', '')
@@ -308,6 +308,52 @@ itinerary_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx
 review_frame_review_text.grid(row = 0, column = 0, sticky = tk.W + tk.E)
 review_text_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 
+
+
+countVar = tk.StringVar()
+pos = '1.0'
+# review_frame_review_text_last_line = review_frame_review_text.index('end')
+# flag = True
+
+# pos = review_frame_review_text.search('Submitted on:', pos, stopindex = 'end', count = countVar)
+# if pos:
+# 	review_frame_review_text.tag_add('time', pos, "{}+{}c".format(pos, countVar.get()))
+# 	review_frame_review_text.tag_configure('time', font = font_content + ' bold')
+# print pos
+
+# print review_frame_review_text.index(pos + 'linestart')
+# print review_frame_review_text_last_line
+# if review_frame_review_text.index(pos + 'linestart') == review_frame_review_text_last_line:
+# 	print False
+
+
+while pos:
+	pos = review_frame_review_text.search('Submitted on:', pos, stopindex = "end", count = countVar)
+	if pos:
+		review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+		pos = pos + '+1c'
+
+pos = review_frame_review_text.search('Rating:', '1.0', stopindex = "end", count = countVar)
+if pos:
+	review_frame_review_text.tag_add('bold', pos, "{}+{}c".format(pos, countVar.get()))
+
+
+review_frame_review_text.tag_configure('bold', font = font_content + ' bold')
+
+	# if review_frame_review_text.index(pos + 'linestart') == review_frame_review_text_last_line:
+	# 	flag = False
+
+
+# pos = review_frame_review_text.search('Submitted on:', '1.0', stopindex="end", count=countVar)
+# review_frame_review_text.tag_add('time', pos, "{}+{}c".format(pos, countVar.get()))
+# review_frame_review_text.tag_configure('time', font = font_content + ' bold')
+# pos = review_frame_review_text.search('Submitted on:', str(pos) + '+1c', stopindex="end", count=countVar)
+# review_frame_review_text.tag_add('time', pos, "{}+{}c".format(pos, countVar.get()))
+# review_frame_review_text.tag_configure('time', font = font_content + ' bold')
+# print review_frame_review_text.index('end')
+
+# pos = review_frame_review_text.search(':', '1.0', stopindex="end", count=countVar)
+# print review_frame_review_text.index(pos + 'linestart')
 
 master.mainloop()
 # master.destroy()	# explicitly destroys the main window when the event loop is terminated; needed for some development envrionments
