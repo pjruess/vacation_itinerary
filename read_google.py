@@ -4,7 +4,9 @@ import urllib, json
 # pip install Image
 import PIL.Image as img
 
-def build_url_text_search(query, output = 'json', key = 'AIzaSyBsILob4SDyR5z0IurzRUylOjioqiTxXP4', **kwargs):
+googleplaces_webservice_key = 'AIzaSyBQAXQgerdCsk-W1r5NimKccumd32lPzPs'
+
+def build_url_text_search(query, output = 'json', key = googleplaces_webservice_key, **kwargs):
 	"""
 		Builds URL to search for places on Google Maps using Google APIs.
 		Text Search returns info about a set of places based on a string: for example, 'pizza in Austin', 'Indian restaurants in Dallas'
@@ -102,7 +104,7 @@ def GetResults(myresponse):
 
 	return results
 
-def build_url_place_details(placeid, output = 'json', key = 'AIzaSyBsILob4SDyR5z0IurzRUylOjioqiTxXP4', **kwargs):
+def build_url_place_details(placeid, output = 'json', key = googleplaces_webservice_key, **kwargs):
 	"""
 		Builds URL to get the details of a place on Google Maps using Google APIs.
 		Place details returns info about a particular establishment or point of interest.

@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 if sys.version_info[0] < 3:
 	import Tkinter as tk
 else:
@@ -181,11 +182,14 @@ itinerary_frame_list.selection_set(0)
 
 
 def GetReviews(event):
+	# delete previous reviews
+	review_frame_review_text.config(state = tk.NORMAL)	# enable editing of text
+	review_frame_review_text.delete('1.0', tk.END)
+
 	# provideint 'Getting reviews for place in the list at ({0}, {1})'.format(event.x, event.y)
 	items = map(int, itinerary_frame_list.curselection())
 	item = itinerary_frame_list.get(int(items[0]))
 	item = item[12:]
-	print item
 
 	placename =  '{0}, {1}, {2}, {3}'.format(item, input_city, input_state, input_country)
 	myurl = gapi.build_url_text_search(query = placename)
@@ -194,50 +198,31 @@ def GetReviews(event):
 	if len(myresults) > 0:
 		myurl = gapi.build_url_place_details(placeid = myresults[0]['place_id'])
 		myresponse = gapi.GetResponse(myurl)
-		myresults = gapi.GetPlaceDetails(myresponse, review_count = reviews_required)
-		review_content = '\nReviews for {}:\n'.format(placename)
-		if len(myresults) > 0:
-			if 'name' in myresults:
-				review_content += '{}\n'.format(myresults['name'].encode('utf-8'))
-			if 'rating' in myresults:
-				review_content += 'RATING: {}\n'.format(myresults['rating'])
-			# if 'reviews' in myresults:
-			# 	review_content += '{}\n'.format(myresults['name'])
-			print review_content
-			
+		# myresults = gapi.GetPlaceDetails(myresponse, review_count = reviews_required)
+		myresults = myresponse
+		review_content = '\nReview(s) for {}:\n'.format(placename)
+
+		if myresponse['status'] == 'OK':
+			result = myresponse['result']
+			if 'name' in result:
+				review_content += '{}\n'.format(result['name'].encode('utf-8'))
+			if 'rating' in result:
+				review_content += 'Ratingg: {}\n'.format(result['rating'])
+			if 'reviews' in result:
+				for i in xrange(0, min(reviews_required, len(result['reviews']))):
+					# review_content += result['reviews'].replace('\t', '')
+					if ('author_name' in result['reviews'][i]) and ('text' in result['reviews'][i]) and ('time' in result['reviews'][i]):
+						review_detail = result['reviews'][i]
+						review_detail_name = review_detail['author_name'].encode('utf-8')
+						review_detail_comment = review_detail['text'].encode('utf-8')
+						review_detail_time = datetime.fromtimestamp(review_detail['time']).strftime('%c')
+						review_content += '{0}: {1}\nSubmitted on: {2}\n\n'.format(review_detail_name, review_detail_comment, review_detail_time)	
 	else:
-		review_content = 'Reviews not available! TRY AGAIN!'
+		review_content = 'Reviews not available! TRY AGAIN!\n'
 
-	review_frame_review_text.config(state = tk.NORMAL)
 	review_frame_review_text.insert(tk.END, review_content)
-	review_frame_review_text.config(state = tk.DISABLED)
+	review_frame_review_text.config(state = tk.DISABLED)	# disable editing of text
 
-
-	# myurl = build_url_text_search(query = 'top restaurants in Mayur Vihar Noida India')
-	# myresponse = GetResponse(myurl)
-	# myresults = GetResults(myresponse)
-	# if len(myresults) > 0:
-	# 	for result in myresults:
-	# 		print '{0}: {1}'.format(result['name'], result['address'])
-	# 	# printing the details of the top result
-	# 	placename = myresults[0]['name']
-	# 	myurl = build_url_place_details(placeid = myresults[0]['place_id'])
-	# 	myresponse = GetResponse(myurl)
-	# 	myresults = GetPlaceDetails(myresponse, review_count = 5)
-	# 	print '\n\nDetails of {}:\n'.format(placename)
-	# 	if len(myresults) > 0:
-	# 		for ele in myresults:
-	# 			print '{0}: {1}'.format(ele, myresults[ele])
-	# else:
-	# 	print 'No results available'
-	# placename = myresults[0]['name']
-	# myurl = gapi.build_url_place_details(placeid = myresults[0]['place_id'])
-	# myresponse = gapi.GetResponse(myurl)
-	# myresults = gapi.GetPlaceDetails(myresponse, review_count = 5)
-	# print '\n\nDetails of {}:\n'.format(placename)
-	# if len(myresults) > 0:
-	# 	for ele in myresults:
-	# 		print '{0}: {1}'.format(ele, myresults[ele])
 
 itinerary_frame_list.bind('<ButtonRelease-1>', GetReviews)
 
@@ -269,8 +254,10 @@ itinerary_frame_list.bind('<ButtonRelease-1>', GetReviews)
 
 review_frame_review_text = tk.Text(review_frame, bd = 1, exportselection = 1, font = font_content, width = 45, wrap = tk.WORD, spacing1 = 3, spacing3 = 1)
 # text = 'Sudesh\nRating: 4.3\nGood!\n\n' + 'Melissa\nRating: 4.0\nGood! friendly staff, beautiful interior and good food provide satisfaction and its central bar looks perfectly awesome in dim light. Going there is a good option if you want to spend some personal time with good food n drinks.\n\n' + 'Paul\nRating: 3.9\nExcellent!\n\n'
+
 text = review_content
 review_frame_review_text.insert(tk.END, text)
+itinerary_frame_list.event_generate('<ButtonRelease-1>')
 review_frame_review_text.config(state = tk.DISABLED)
 # Add scrollbars
 review_text_yscrollbar = tk.Scrollbar(review_frame)
