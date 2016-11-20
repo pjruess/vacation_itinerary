@@ -52,7 +52,7 @@ nodes['lat'] = lat.astype(float).round(9) # round to 6th decimal
 nodes['lon'] = lon.astype(float).round(9) # round to 6th decimal
 
 del nodes['latlon']
-nodes.to_csv('austin_nodes.csv',index=False) # for testing
+# nodes.to_csv('austin_nodes.csv',index=False) # for testing
 
 # **********************
 # Convert road network into pandas dataframe
@@ -139,74 +139,88 @@ for a,b in zip(startpoints,endpoints):
 	lines.append(l.wkt) # add as well-known-text format
 
 edges['LINESTRING'] = lines # add to edges dataset
-
-edges.to_csv('austin_edges.csv',index=False) # for testing
+# edges.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
 # Create road network
 # **********************
-print nodes # nodes df
-print edges # edges df
-import vacation_itin
+import vacation_itin2
+import matplotlib.pyplot as plt
 
-austin_itinerary = vacation_itin.vacation_itinerary(
-	city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+if not 
+city_itinerary = vacation_itin2.vacation_itinerary(
+	city_file=edges,attractions_file=nodes)
+print 'Itinerary class initiated'
 """
-austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gdcon)
-austin_itinerary.drawAddress(addressLon=austin_itinerary.attr.lon.values[0],addressLat=austin_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
-austin_itinerary.zoomToFit()
+city_itinerary.drawStreetNetwork(GPH=city_itinerary.gdcon)
+city_itinerary.drawAddress(addressLon=city_itinerary.attr.lon.values[0],addressLat=city_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
+city_itinerary.zoomToFit()
 """
-temp = ['hotel']
-temp.extend(austin_itinerary.attr.attraction.values)
-print austin_itinerary.getItineraryReward(itin=temp)
-
+# temp = ['hotel']
+# temp.extend(city_itinerary.attr.attraction.values)
+# print city_itinerary.getItineraryReward(itin=temp)
+# city_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+optimalItin = city_itinerary.solve_optimal_itinerary(
+	itin=city_itinerary.initial_itinerary)
+print optimalItin
+print 'total reward: ', city_itinerary.getItineraryReward(
+	itin=optimalItin)
+city_itinerary.drawStreetNetwork(GPH=city_itinerary.gd)
+print 'Street network drawn'
+city_itinerary.drawItineraryPath(itin=optimalItin)
+print 'Shortest path drawn'
+city_itinerary.draw_all_attractions(itin=optimalItin)
+print 'Attractions drawn'
+city_itinerary.zoomToFit('optimal_itinerary.png')
 
 # **********************
-# Display road network and nodes in geoplotter
+# Display road network and nodes in tkinter gui
 # **********************
 
-
+output_script = 'output.py'
+map_file = 'optimal_itinerary.png'
+os.system('python ' + output_script + ' -map=' + map_file)
 
 # **********************
 # Display road network and nodes in qgis
 # **********************
-from qgis.core import *
-from qgis.gui import *
-from PyQt4.QtCore import *
+# from qgis.core import *
+# from qgis.gui import *
+# from PyQt4.QtCore import *
 
-# Supply path to QGIS install location
-QgsApplication.setPrefixPath('/usr/bin/qgis',True)
-# Create reference to QgsApplication
-qgs = QgsApplication([],True) # No GUI
-qgs.initQgis()
+# # Supply path to QGIS install location
+# QgsApplication.setPrefixPath('/usr/bin/qgis',True)
+# # Create reference to QgsApplication
+# qgs = QgsApplication([],True) # No GUI
+# qgs.initQgis()
 
-# Initialize map canvas
-canvas = QgsMapCanvas()
-canvas.setCanvasColor(Qt.white)
-canvas.enableAntiAliasing(True) # Smooth rendering
+# # Initialize map canvas
+# canvas = QgsMapCanvas()
+# canvas.setCanvasColor(Qt.white)
+# canvas.enableAntiAliasing(True) # Smooth rendering
 
-# Load road layer
-layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-QgsMapLayerRegistry.instance().addMapLayer(layer)
-canvas.setExtent(layer.extent())
-canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+# # Load road layer
+# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+# QgsMapLayerRegistry.instance().addMapLayer(layer)
+# canvas.setExtent(layer.extent())
+# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
 
-# Load attractions layer
-layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-QgsMapLayerRegistry.instance().addMapLayer(layer)
-canvas.setExtent(layer.extent())
-canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+# # Load attractions layer
+# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+# QgsMapLayerRegistry.instance().addMapLayer(layer)
+# canvas.setExtent(layer.extent())
+# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
 
-# Load hotel layer
-layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-QgsMapLayerRegistry.instance().addMapLayer(layer)
-canvas.setExtent(layer.extent())
-canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+# # Load hotel layer
+# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
+# QgsMapLayerRegistry.instance().addMapLayer(layer)
+# canvas.setExtent(layer.extent())
+# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
 
-# Display map
-canvas.refresh()
-canvas.show()
-qgs.exec_()
+# # Display map
+# canvas.refresh()
+# canvas.show()
+# qgs.exec_()
 
-# Remove provider and layer registries from memory
-qgs.exitQgis()
+# # Remove provider and layer registries from memory
+# qgs.exitQgis()
