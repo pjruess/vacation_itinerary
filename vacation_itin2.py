@@ -227,7 +227,7 @@ class vacation_itinerary:
 	# solves for the optimal itinerary for one day
 	# output: a list of the names of the attractions for one day starting and ending at the hotel
 	def solve_optimal_itinerary(self,itin):
-		print 'Start solving for optimal itinerary...'
+		print 'Solving for optimal itinerary...'
 		# Select n random attractions later in the list to node in question
 		maxCost = self.getItineraryReward(itin=itin)
 		itinTemp = list(itin)
@@ -292,5 +292,4 @@ if __name__ == '__main__':
 	austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gd)
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
-	#matplotlib.pyplot.savefig('optimal_itinerary.png')
-	austin_itinerary.zoomToFit(itin=optimalItin)
+	austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
