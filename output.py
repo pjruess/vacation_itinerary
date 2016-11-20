@@ -24,8 +24,7 @@ def parse_arg(arg):
 	return k.lstrip('-'),v # parsed argument
 
 d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
-input_map = d['map']
-print input_map
+if d: input_map = d['map']
 
 master = tk.Tk()
 master.title('Optimal Itinerary')
@@ -53,7 +52,6 @@ master.geometry("%dx%d%+d%+d" % (screen_width, screen_height, 0, 0))		# "%dx%d%+
 font_content = 'Calibri 12'
 font_head = ('Cambria', 24, 'bold')
 # font_head = 'Cambria 20 bold'
-# input_map = 'ToRudys.png'
 
 myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
 myresponse = gapi.GetResponse(myurl)
