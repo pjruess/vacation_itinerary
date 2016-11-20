@@ -31,6 +31,7 @@ font_content = 'Calibri 12'
 font_head = ('Cambria', 24, 'bold')
 # font_head = 'Cambria 20 bold'
 input_map = 'ToRudys.png'
+review_content = ''
 
 
 def AddLabelFrame(parentwidget, text, height = frame_height, width = frame_width, relief = tk.SUNKEN, font = font_head):
@@ -111,6 +112,7 @@ resized_image_label.image = resized_route_map
 
 # Add button to remove everything save the map
 def ZoomMap():
+	itinerary_frame_list.config(height = int(min(height /16.0, usable_screen_height / 16.0)))
 	if width > (2 * frame_width):
 		itinerary_frame.grid_remove()
 	review_frame.grid_remove()
@@ -120,6 +122,7 @@ def ZoomMap():
 	image_label.grid()
 
 def RestoreMap():
+	itinerary_frame_list.config(height = int(map_height / 16.0))
 	map_frame_restore_button.grid_remove()
 	image_label.grid_remove()
 	if width > (2 * frame_width):
@@ -135,17 +138,39 @@ map_frame_restore_button = tk.Button(map_frame, text = 'Restore', font = '16', c
 
 
 # Add elements to itinerary_frame
-itinerary_frame_list = tk.Listbox(itinerary_frame, bd = 0, font = 'Literata 14')
+itinerary_list = tk.StringVar()
+# height: number of lines, activestyle: 'underline', 'dotbox', 'none'
+itinerary_frame_list = tk.Listbox(itinerary_frame, bd = 0, font = font_content, height = int(map_height / 16.0), activestyle = 'dotbox', exportselection = 1, listvariable = itinerary_list, selectmode = tk.BROWSE, state = tk.NORMAL)
 # Add scrollbars
 itinerary_yscrollbar = tk.Scrollbar(itinerary_frame)
 # attach list box to scrollbar
 itinerary_frame_list.config(yscrollcommand = itinerary_yscrollbar.set)
 itinerary_yscrollbar.config(command = itinerary_frame_list.yview)
 
-for i in range(20):
+for i in range(60):
 	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 Hotel {}'.format(i+1))
 
+itinerary_frame_list.selection_set(0)
+# print itinerary_list.get()
+# itinerary_list.set('A B')
 
+
+def GetReviews(event):
+	# provideint 'Getting reviews for place in the list at ({0}, {1})'.format(event.x, event.y)
+	item = map(int, itinerary_frame_list.curselection())
+	print itinerary_frame_list.get(int(item[0]))
+
+itinerary_frame_list.bind('<ButtonRelease-1>', GetReviews)
+
+# print itinerary_frame_list.get(0, 2)
+# itinerary_frame_list.selection_clear(0, tk.END)
+# itinerary_frame_list.activate(3)
+# itinerary_list.set('Hello Brother')
+# itinerary_frame_list.insert(6, 'Hello Brother')
+
+
+
+# 
 
 # Add elements to review frame
 # number_reviews = 0
