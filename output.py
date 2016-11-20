@@ -4,6 +4,7 @@ if sys.version_info[0] < 3:
 else:
 	import tkinter as tk
 from PIL import Image, ImageTk
+import read_google as gapi
 
 
 master = tk.Tk()
@@ -27,11 +28,32 @@ master.maxsize(screen_width, screen_height)
 master.geometry("%dx%d%+d%+d" % (screen_width, screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
 
 
+# Inputs
+
 font_content = 'Calibri 12'
 font_head = ('Cambria', 24, 'bold')
 # font_head = 'Cambria 20 bold'
 input_map = 'ToRudys.png'
+
+myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
+myresponse = gapi.GetResponse(myurl)
+myresults = gapi.GetResults(myresponse)
+input_country = 'US'
+input_city = 'Austin'
+input_state = 'TX'
+input_itinerary = []
+
+if len(myresults) > 0:
+	for result in myresults:
+		# print '{0}: {1}'.format(result['name'], result['address'])
+		input_itinerary.append(result['name'])
+	# printing the details of the top result
+	
+else:
+	print 'No results available!'
+
 review_content = ''
+reviews_required = 3
 
 
 def AddLabelFrame(parentwidget, text, height = frame_height, width = frame_width, relief = tk.SUNKEN, font = font_head):
@@ -147,8 +169,11 @@ itinerary_yscrollbar = tk.Scrollbar(itinerary_frame)
 itinerary_frame_list.config(yscrollcommand = itinerary_yscrollbar.set)
 itinerary_yscrollbar.config(command = itinerary_frame_list.yview)
 
-for i in range(60):
-	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 Hotel {}'.format(i+1))
+# for i in range(60):
+# 	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 Hotel {}'.format(i+1))
+
+for e in input_itinerary:
+	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 {}'.format(e))
 
 itinerary_frame_list.selection_set(0)
 # print itinerary_list.get()
@@ -157,8 +182,62 @@ itinerary_frame_list.selection_set(0)
 
 def GetReviews(event):
 	# provideint 'Getting reviews for place in the list at ({0}, {1})'.format(event.x, event.y)
-	item = map(int, itinerary_frame_list.curselection())
-	print itinerary_frame_list.get(int(item[0]))
+	items = map(int, itinerary_frame_list.curselection())
+	item = itinerary_frame_list.get(int(items[0]))
+	item = item[12:]
+	print item
+
+	placename =  '{0}, {1}, {2}, {3}'.format(item, input_city, input_state, input_country)
+	myurl = gapi.build_url_text_search(query = placename)
+	myresponse = gapi.GetResponse(myurl)
+	myresults = gapi.GetResults(myresponse)
+	if len(myresults) > 0:
+		myurl = gapi.build_url_place_details(placeid = myresults[0]['place_id'])
+		myresponse = gapi.GetResponse(myurl)
+		myresults = gapi.GetPlaceDetails(myresponse, review_count = reviews_required)
+		review_content = '\nReviews for {}:\n'.format(placename)
+		if len(myresults) > 0:
+			if 'name' in myresults:
+				review_content += '{}\n'.format(myresults['name'].encode('utf-8'))
+			if 'rating' in myresults:
+				review_content += 'RATING: {}\n'.format(myresults['rating'])
+			# if 'reviews' in myresults:
+			# 	review_content += '{}\n'.format(myresults['name'])
+			print review_content
+			
+	else:
+		review_content = 'Reviews not available! TRY AGAIN!'
+
+	review_frame_review_text.config(state = tk.NORMAL)
+	review_frame_review_text.insert(tk.END, review_content)
+	review_frame_review_text.config(state = tk.DISABLED)
+
+
+	# myurl = build_url_text_search(query = 'top restaurants in Mayur Vihar Noida India')
+	# myresponse = GetResponse(myurl)
+	# myresults = GetResults(myresponse)
+	# if len(myresults) > 0:
+	# 	for result in myresults:
+	# 		print '{0}: {1}'.format(result['name'], result['address'])
+	# 	# printing the details of the top result
+	# 	placename = myresults[0]['name']
+	# 	myurl = build_url_place_details(placeid = myresults[0]['place_id'])
+	# 	myresponse = GetResponse(myurl)
+	# 	myresults = GetPlaceDetails(myresponse, review_count = 5)
+	# 	print '\n\nDetails of {}:\n'.format(placename)
+	# 	if len(myresults) > 0:
+	# 		for ele in myresults:
+	# 			print '{0}: {1}'.format(ele, myresults[ele])
+	# else:
+	# 	print 'No results available'
+	# placename = myresults[0]['name']
+	# myurl = gapi.build_url_place_details(placeid = myresults[0]['place_id'])
+	# myresponse = gapi.GetResponse(myurl)
+	# myresults = gapi.GetPlaceDetails(myresponse, review_count = 5)
+	# print '\n\nDetails of {}:\n'.format(placename)
+	# if len(myresults) > 0:
+	# 	for ele in myresults:
+	# 		print '{0}: {1}'.format(ele, myresults[ele])
 
 itinerary_frame_list.bind('<ButtonRelease-1>', GetReviews)
 
@@ -188,8 +267,9 @@ itinerary_frame_list.bind('<ButtonRelease-1>', GetReviews)
 # CreateReviewLabel(review_frame, 'Paul\nRating: 3.9\nExcellent!\n', number_reviews)
 
 
-review_frame_review_text = tk.Text(review_frame, bd = 1, exportselection = 1, font = font_content, width = 45, wrap = tk.WORD)
-text = 'Sudesh\nRating: 4.3\nGood!\n\n' + 'Melissa\nRating: 4.0\nGood! friendly staff, beautiful interior and good food provide satisfaction and its central bar looks perfectly awesome in dim light. Going there is a good option if you want to spend some personal time with good food n drinks.\n\n' + 'Paul\nRating: 3.9\nExcellent!\n\n'
+review_frame_review_text = tk.Text(review_frame, bd = 1, exportselection = 1, font = font_content, width = 45, wrap = tk.WORD, spacing1 = 3, spacing3 = 1)
+# text = 'Sudesh\nRating: 4.3\nGood!\n\n' + 'Melissa\nRating: 4.0\nGood! friendly staff, beautiful interior and good food provide satisfaction and its central bar looks perfectly awesome in dim light. Going there is a good option if you want to spend some personal time with good food n drinks.\n\n' + 'Paul\nRating: 3.9\nExcellent!\n\n'
+text = review_content
 review_frame_review_text.insert(tk.END, text)
 review_frame_review_text.config(state = tk.DISABLED)
 # Add scrollbars
