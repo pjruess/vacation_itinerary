@@ -205,6 +205,7 @@ def GetReviews(event):
 	item = item[12:]
 
 	placename =  '{0}, {1}, {2}, {3}'.format(item, input_city, input_state, input_country)
+	placename_main = item
 	myurl = gapi.build_url_text_search(query = placename)
 	myresponse = gapi.GetResponse(myurl)
 	myresults = gapi.GetResults(myresponse)
@@ -217,9 +218,9 @@ def GetReviews(event):
 
 		if myresponse['status'] == 'OK':
 			result = myresponse['result']
-			if 'name' in result:
+			# if 'name' in result:
 				# review_content += '{}\n\n'.format(result['name'].encode('utf-8'))
-				placename_main = result['name'].encode('utf-8')
+				# placename_main = result['name'].encode('utf-8')
 			if 'rating' in result:
 				review_content += 'Rating: {}\n'.format(result['rating'])
 			if 'reviews' in result:

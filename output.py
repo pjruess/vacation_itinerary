@@ -218,6 +218,7 @@ def GetReviews(event):
 	item = item[12:]
 
 	placename =  '{0}, {1}, {2}, {3}'.format(item, input_city, input_state, input_country)
+	placename_main = item
 	myurl = gapi.build_url_text_search(query = placename)
 	myresponse = gapi.GetResponse(myurl)
 	myresults = gapi.GetResults(myresponse)
