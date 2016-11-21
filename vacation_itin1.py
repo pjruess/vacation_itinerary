@@ -10,16 +10,17 @@ from geoplotter import *
 import matplotlib.pyplot
 
 TIME_VALUE_OF_MONEY = 12.
+HOURS_AWAY_FROM_HOTEL = 12.
 SAMPLE_SIZE = 5
 
 class vacation_itinerary:
 
 	def __init__(self,city_file,attractions_file,**kwargs):
 		# reads road network file
-		# self.ds = pandas.read_csv(city_file)
+		#self.ds = pandas.read_csv(city_file)
 		self.ds = city_file
 		# reads attraction address file
-		# self.attr = pandas.read_csv(attractions_file)
+		#self.attr = pandas.read_csv(attractions_file)
 		self.attr = attractions_file
 		self.initial_itinerary = ['hotel']
 		self.initial_itinerary.extend(self.attr.attraction.values)
@@ -88,7 +89,8 @@ class vacation_itinerary:
 	    temp_edge_length = scipy.array([len(p.edges()) for p in gdcon_temp])
 	    idx = scipy.where(temp_edge_length==max(temp_edge_length))[0][0]
 	    self.gdcon = gdcon_temp[idx]
-	    # print 'NetworkX graph created.'
+	    print 'NetworkX graph created.'
+	    print
 
 
 	# finds the shortest path between two nodes using Dijkstra's algorithm in networkx
@@ -112,19 +114,77 @@ class vacation_itinerary:
 		self.DSmap.drawPoints(lat=addressLat,lon=addressLon,color=co,s=marksz)
 
 
+	# draws all attractions as a red dot on the map
+	def draw_all_attractions(self,itin,closestNode=True):
+		attr_lon = [self.attr[self.attr.attraction==h].lon.values[0] for h in itin]
+		attr_lat = [self.attr[self.attr.attraction==h].lat.values[0] for h in itin]
+		if closestNode==True:
+			nodes_temp = scipy.array([self.findClosestNode(placeLon=self.attr[self.attr.attraction==h].lon.values[0],placeLat=self.attr[self.attr.attraction==h].lat.values[0],GPH=self.gdcon)[1] for h in itin])
+			attr_lon = nodes_temp[:,0]
+			attr_lat = nodes_temp[:,1]
+		self.DSmap.drawPoints(lat=attr_lat[0],lon=attr_lon[0],color='r',s=75)
+		self.DSmap.drawPoints(lat=attr_lat[1:-1],lon=attr_lon[1:-1],color='g',s=75)
+
+
 	# draws the path
-	def drawPath(self,path,lw=3):
+	def drawPath(self,path,lw=3,col='orange'):
 		stLines = [[[float(dw) for dw in g.split()] for g in path]]
-		self.DSmap.drawLines(lines = stLines,color = 'orange',linewidth = lw,alpha = 1)
+		self.DSmap.drawLines(lines = stLines,color = col,linewidth = lw,alpha = 1)
 
 
 	# draws the itinerary path
-	def drawItineraryPath(self,itin):
+	def drawItineraryPath(self,itin,colP='orange'):
 		for locidx in range(len(itin)-1):
 			startN = self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[locidx]].lon.values[0], placeLat=self.attr[self.attr.attraction==itin[locidx]].lat.values[0],GPH=self.gdcon)[0]
 			endN = self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[locidx+1]].lon.values[0], placeLat=self.attr[self.attr.attraction==itin[locidx+1]].lat.values[0],GPH=self.gdcon)[0]
 			p=self.getSPNetworkx(startnode=startN, destnode=endN, GPH=self.gdcon)
-			self.drawPath(path=p)
+			self.drawPath(path=p,lw=2,col=colP)
+
+
+	# draw the attractions and paths for the optimal itinerary on the city map
+	def draw_optimal_itinerary(self,opt_itin,co='orange',fname=False):
+		print 'Drawing Optimal Itinerary...'
+		# draws the city map
+		self.drawStreetNetwork(GPH=self.gd)
+		# draws path for the optimal itinerary
+		self.drawItineraryPath(itin=opt_itin,colP=co)
+		# draws the attractions
+		self.draw_all_attractions(itin=opt_itin)
+		self.zoomToFit(itin=opt_itin,filename=fname)
+
+
+	# draw attractions and paths for the optimal itinerary for multiple days on the city map
+	def draw_multi_day_optimal_itinerary(self,multi_day_itin,fname=False,onemap=False):
+		print 'Drawing Map for Multiple Day Itinerary...'
+		print
+
+		#draws the paths and attractions
+		if onemap:	# draws multi-day paths in one map
+			colorP = ['orange','m','c','black','y']
+			# creates list of all attractions for the multi-day for zooming
+			temp_itin = multi_day_itin[0]
+			for u in multi_day_itin[1:]:
+				temp_itin.extend(u)
+			# draws the city map
+			self.drawStreetNetwork(self.gd)
+			for w in range(len(multi_day_itin)):
+				austin_itinerary.drawItineraryPath(itin=multi_day_itin[w],colP=colorP[w])
+				austin_itinerary.draw_all_attractions(itin=multi_day_itin[w])
+				self.draw_all_attractions(itin=multi_day_itin[w])
+				self.zoomToFit(itin=temp_itin,filename="all_days_"+fname)
+		else:	# draws a map for each day
+			for w in range(len(multi_day_itin)):
+				# draws the city map
+				self.drawStreetNetwork(self.gd)
+				austin_itinerary.drawItineraryPath(itin=multi_day_itin[w])
+				austin_itinerary.draw_all_attractions(itin=multi_day_itin[w])
+				self.draw_all_attractions(itin=multi_day_itin[w])
+				if fname:
+					fname_temp = 'day' + str(w+1) + '_' + fname
+					self.zoomToFit(itin=multi_day_itin[w],filename=fname_temp)
+				else:
+					self.zoomToFit(itin=multi_day_itin[w])
+				self.DSmap.clear()
 
 
 	# formats map
@@ -225,19 +285,20 @@ class vacation_itinerary:
 		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)[0], target=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)[0], weight='time') for p in range(len(itin)-1)]
 		return scipy.sum(time_reward_temp) + 2*(len(itin))
 
+
 	# solves for the optimal itinerary for one day
 	# output: a list of the names of the attractions for one day starting and ending at the hotel
 	def solve_optimal_itinerary(self,itin):
-		# print 'Start solving for optimal itinerary...'
+		print 'Solving for Optimal Itinerary...'
+		print
 		# Select n random attractions later in the list to node in question
 		maxCost = self.getItineraryReward(itin=itin)
 		itinTemp = list(itin)
 		# counter for item in itinerary
 		i = 1
 		totTime = 0
-		while totTime<12 and i < len(itin):
+		while totTime<HOURS_AWAY_FROM_HOTEL and i < len(itin):
 			switchIdx = i
-			# print 'i = ', i
 			rand_attr = scipy.random.randint(low=i, high=len(itin)-1, size=SAMPLE_SIZE)
 			for j in rand_attr:
 				itinTemp[i], itinTemp[j] = itinTemp[j], itinTemp[i]
@@ -248,9 +309,6 @@ class vacation_itinerary:
 				itinTemp = list(itin)
 			itin[i], itin[switchIdx] = itin[switchIdx], itin[i]
 			totTime = self.getTotalTime(itin=itin[0:i])
-			# print 'reward = ', maxCost
-			# print 'totTime = ', totTime
-			# print
 			i = i + 1			
 
 		itinFinal = itin[0:i-2]
@@ -258,40 +316,39 @@ class vacation_itinerary:
 		return itinFinal
 
 
-	# draw the attractions and paths for the optimal itinerary
-	def draw_optimal_itinerary(self,opt_itin):
-		# draws path for the optimal itinerary
-		for locidx in range(len(opt_itin)-1):
-			startN = austin_itinerary.findClosestNode(placeLon=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx]].lon.values[0], placeLat=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx]].lat.values[0],GPH=austin_itinerary.gdcon)[0]
-			endN = austin_itinerary.findClosestNode(placeLon=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx+1]].lon.values[0], placeLat=austin_itinerary.attr[austin_itinerary.attr.attraction==temp[locidx+1]].lat.values[0],GPH=austin_itinerary.gdcon)[0]
-			p=austin_itinerary.getSPNetworkx(startnode=startN, destnode=endN, GPH=austin_itinerary.gdcon)
-			austin_itinerary.drawPath(path=p,lw=2)
-
-		# draws the attractions
-		self.draw_all_attractions(itin=opt_itin)
-
-
-	# draws all attractions as a red dot on the map
-	def draw_all_attractions(self,itin,closestNode=True):
-		attr_lon = [self.attr[self.attr.attraction==h].lon.values[0] for h in itin]
-		attr_lat = [self.attr[self.attr.attraction==h].lat.values[0] for h in itin]
-		if closestNode==True:
-			nodes_temp = scipy.array([self.findClosestNode(placeLon=self.attr[self.attr.attraction==h].lon.values[0],placeLat=self.attr[self.attr.attraction==h].lat.values[0],GPH=self.gdcon)[1] for h in itin])
-			attr_lon = nodes_temp[:,0]
-			attr_lat = nodes_temp[:,1]
-		self.DSmap.drawPoints(lat=attr_lat[0],lon=attr_lon[0],color='r',s=75)
-		self.DSmap.drawPoints(lat=attr_lat[1:-1],lon=attr_lon[1:-1],color='g',s=75)
+	# solves itinerary for more than one day, less than or equal to 3 days
+	def solve_full_itinerary(self,working_itin,days=1):
+		print 'Solving for Full Itinerary...'
+		print
+		full_itin = []
+		for r in range(days):
+			print 'Solving Itinerary for Day ' + str(r+1) + '...'
+			print
+			# solves optimal itinerary for that day
+			day_itin = self.solve_optimal_itinerary(itin=working_itin)
+			full_itin.append(day_itin)
+			# removes attractions that have been visited in previous days
+			for b in day_itin[1:-1]:
+				if b in working_itin: 
+					working_itin.remove(b)
+		return full_itin
 
 
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+	""""
 	optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
-	# print optimalItin
-	# print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
-	# print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
-	# print 
-	austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gd)
+	print optimalItin
+	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
+	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
+	print 
+	"""
+	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=3)
+	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='three_day_itinerary.png',onemap=False)
+
+	"""
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
-	#matplotlib.pyplot.savefig('optimal_itinerary.png')
-	austin_itinerary.zoomToFit(itin=optimalItin)
+	austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
+	"""
+	
