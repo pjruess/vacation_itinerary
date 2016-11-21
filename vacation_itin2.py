@@ -8,6 +8,7 @@ import pandas
 import networkx
 from geoplotter import *
 import matplotlib.pyplot
+import itertools
 
 TIME_VALUE_OF_MONEY = 12.
 HOURS_AWAY_FROM_HOTEL = 12.
@@ -160,7 +161,7 @@ class vacation_itinerary:
 
 		#draws the paths and attractions
 		if onemap:	# draws multi-day paths in one map
-			colorP = ['orange','m','c','black','y']
+			colorP = itertools.cycle(['orange','m','c','black'])#,'y'])
 			# creates list of all attractions for the multi-day for zooming
 			temp_itin = multi_day_itin[0]
 			for u in multi_day_itin[1:]:
@@ -168,7 +169,7 @@ class vacation_itinerary:
 			# draws the city map
 			self.drawStreetNetwork(self.gd)
 			for w in range(len(multi_day_itin)):
-				austin_itinerary.drawItineraryPath(itin=multi_day_itin[w],colP=colorP[w])
+				austin_itinerary.drawItineraryPath(itin=multi_day_itin[w],colP=next(colorP))
 				austin_itinerary.draw_all_attractions(itin=multi_day_itin[w])
 				self.draw_all_attractions(itin=multi_day_itin[w])
 				self.zoomToFit(itin=temp_itin,filename="all_days_"+fname)
@@ -321,6 +322,13 @@ class vacation_itinerary:
 		print 'Solving for Full Itinerary...'
 		print
 		full_itin = []
+		# maximum number of days for vacation to allow safe execution of optimal itinerary with max days
+		max_days = scipy.floor((len(self.attr.attraction.values)-1)/5.)
+		if days > max_days:
+			print 'Not enough top attractions for ' + str(days) + ' days of vacation.'
+			print 'Maximum days: ' + str(int(max_days))
+			print
+			days = int(max_days)
 		for r in range(days):
 			print 'Solving Itinerary for Day ' + str(r+1) + '...'
 			print
@@ -343,8 +351,8 @@ if __name__ == '__main__':
 	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
 	print 
 	"""
-	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=3)
-	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='three_day_itinerary.png',onemap=False)
+	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=5)
+	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='test_day_itinerary.png',onemap=True)
 
 	"""
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
