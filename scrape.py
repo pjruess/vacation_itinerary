@@ -170,7 +170,7 @@ city_itinerary.drawItineraryPath(itin=optimalItin)
 print 'Shortest path drawn'
 city_itinerary.draw_all_attractions(itin=optimalItin)
 print 'Attractions drawn'
-city_itinerary.zoomToFit('optimal_itinerary.png')
+city_itinerary.zoomToFit(filename='optimal_itinerary.png')
 
 # **********************
 # Display road network and nodes in tkinter gui
@@ -178,9 +178,12 @@ city_itinerary.zoomToFit('optimal_itinerary.png')
 
 output_script = 'output.py'
 map_file = 'optimal_itinerary.png'
-os.system('python ' + output_script + ' -map=' + map_file
-	+ ' -city=' + d['city'] + ' -state=' + d['state']
-	+ ' -path=' + str(optimalItin))
+os.system('python ' + output_script
+	+ ' -map=' + map_file
+	+ ' -city=' + d['city']
+	+ ' -state=' + d['state']
+	+ ' -path=' + str(optimalItin)
+	+ ' -path=' + d['base'].replace('_',' '))
 
 # **********************
 # Display road network and nodes in qgis
