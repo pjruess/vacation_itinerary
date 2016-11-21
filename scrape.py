@@ -189,6 +189,8 @@ command = str(
 	+ ' -path=' + str(optimalItin).replace(' ','_')
 	)
 
+print 'command-line argument:',command
+
 os.system(command)
 
 # **********************
