@@ -36,22 +36,31 @@ font_content = 'Calibri 12'
 font_head = ('Cambria', 24, 'bold')
 # font_head = 'Cambria 20 bold'
 
-myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
-myresponse = gapi.GetResponse(myurl)
-myresults = gapi.GetResults(myresponse)
 input_country = 'US'
 input_city = 'Austin'
 input_state = 'TX'
-input_itinerary = []
+# input_itinerary = []
 
-if len(myresults) > 0:
-	for result in myresults:
-		# print '{0}: {1}'.format(result['name'], result['address'])
-		input_itinerary.append(result['name'])
-	# printing the details of the top result
+a = '[\'Hotel\', \'State Capitol\', \'Thinkery\', \'Hotel\']'
+b = a.replace('[', '').replace(']', '').replace('\'', '')
+input_itinerary = b.split(',')
+input_itinerary[0] = 'Hotel Ella'
+input_itinerary[-1] = input_itinerary[0]
+
+
+# myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
+# myresponse = gapi.GetResponse(myurl)
+# myresults = gapi.GetResults(myresponse)
+
+
+# if len(myresults) > 0:
+# 	for result in myresults:
+# 		# print '{0}: {1}'.format(result['name'], result['address'])
+# 		input_itinerary.append(result['name'])
+# 	# printing the details of the top result
 	
-else:
-	print 'No results available!'
+# else:
+# 	print 'No results available!'
 
 review_content = ''
 reviews_required = 3
@@ -172,9 +181,10 @@ itinerary_yscrollbar.config(command = itinerary_frame_list.yview)
 
 # for i in range(60):
 # 	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 Hotel {}'.format(i+1))
-
+start = 8
 for e in input_itinerary:
-	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 {}'.format(e))
+	itinerary_frame_list.insert(tk.END, u'{0:02d}:00\u2013{1:02d}:00 {2}'.format(start, start + 2, e))
+	start += 2
 
 itinerary_frame_list.selection_set(0)
 # print itinerary_list.get()
