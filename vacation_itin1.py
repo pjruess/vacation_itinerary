@@ -88,8 +88,7 @@ class vacation_itinerary:
 	    temp_edge_length = scipy.array([len(p.edges()) for p in gdcon_temp])
 	    idx = scipy.where(temp_edge_length==max(temp_edge_length))[0][0]
 	    self.gdcon = gdcon_temp[idx]
-	    print 'NetworkX graph created.'
-	    print
+	    # print 'NetworkX graph created.'
 
 
 	# finds the shortest path between two nodes using Dijkstra's algorithm in networkx
@@ -229,7 +228,7 @@ class vacation_itinerary:
 	# solves for the optimal itinerary for one day
 	# output: a list of the names of the attractions for one day starting and ending at the hotel
 	def solve_optimal_itinerary(self,itin):
-		print 'Start solving for optimal itinerary...'
+		# print 'Start solving for optimal itinerary...'
 		# Select n random attractions later in the list to node in question
 		maxCost = self.getItineraryReward(itin=itin)
 		itinTemp = list(itin)
@@ -238,7 +237,7 @@ class vacation_itinerary:
 		totTime = 0
 		while totTime<12 and i < len(itin):
 			switchIdx = i
-			print 'i = ', i
+			# print 'i = ', i
 			rand_attr = scipy.random.randint(low=i, high=len(itin)-1, size=SAMPLE_SIZE)
 			for j in rand_attr:
 				itinTemp[i], itinTemp[j] = itinTemp[j], itinTemp[i]
@@ -249,9 +248,9 @@ class vacation_itinerary:
 				itinTemp = list(itin)
 			itin[i], itin[switchIdx] = itin[switchIdx], itin[i]
 			totTime = self.getTotalTime(itin=itin[0:i])
-			print 'reward = ', maxCost
-			print 'totTime = ', totTime
-			print
+			# print 'reward = ', maxCost
+			# print 'totTime = ', totTime
+			# print
 			i = i + 1			
 
 		itinFinal = itin[0:i-2]
@@ -287,10 +286,10 @@ class vacation_itinerary:
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
 	optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
-	print optimalItin
-	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
-	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
-	print 
+	# print optimalItin
+	# print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
+	# print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
+	# print 
 	austin_itinerary.drawStreetNetwork(GPH=austin_itinerary.gd)
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)

@@ -26,6 +26,9 @@ def parse_arg(arg):
 
 d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 
+d['base'] = d['base'].replace('_',' ')
+d['path'] = d['path'].replace('_',' ')
+
 print 'dicttest', d
 
 print 'dpath',d['path']
@@ -302,3 +305,4 @@ review_frame_review_text.grid(row = 0, column = 0, sticky = tk.W + tk.E)
 review_text_yscrollbar.grid(row = 0, column = 1, sticky = tk.E + tk.N + tk.S, padx = 0, pady = 0, ipadx = 0, ipady = 0)
 
 master.mainloop()
+# master.destroy()	# explicitly destroys the main window when the event loop is terminated; needed for some development envrionments
