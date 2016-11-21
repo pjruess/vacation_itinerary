@@ -27,6 +27,7 @@ d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 input_map = d['map']
 
 print d['path']
+print d['hotel']
 
 master = tk.Tk()
 master.title('Optimal Itinerary')
