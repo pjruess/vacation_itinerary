@@ -26,6 +26,8 @@ def parse_arg(arg):
 d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 input_map = d['map']
 
+print d
+
 print d['path']
 print d['hotel']
 
