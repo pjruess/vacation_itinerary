@@ -179,12 +179,19 @@ city_itinerary.zoomToFit(itin=optimalItin,
 
 output_script = 'output.py'
 map_file = 'optimal_itinerary.png'
-os.system('python ' + output_script
+
+command = str(
+	'python ' + output_script
 	+ ' -map=' + map_file
 	+ ' -city=' + d['city']
 	+ ' -state=' + d['state']
-	+ ' -path=' + str(optimalItin)
-	+ ' -hotel=' + str(hotel))
+	+ ' -base=' + str(hotel).replace(' ','_')
+	+ ' -path=' + str(optimalItin).replace(' ','_')
+	)
+
+print 'command-line argument:',command
+
+os.system(command)
 
 # **********************
 # Display road network and nodes in qgis
