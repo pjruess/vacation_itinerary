@@ -184,7 +184,7 @@ os.system('python ' + output_script
 	+ ' -city=' + d['city']
 	+ ' -state=' + d['state']
 	+ ' -path=' + str(optimalItin)
-	+ ' -hotel=' + hotel)
+	+ ' -hotel=' + str(hotel))
 
 # **********************
 # Display road network and nodes in qgis
