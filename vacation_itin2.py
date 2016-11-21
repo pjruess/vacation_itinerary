@@ -286,7 +286,6 @@ class vacation_itinerary:
 
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
-	"""
 	optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
 	print optimalItin
 	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
@@ -296,5 +295,4 @@ if __name__ == '__main__':
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
 	austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
-	"""
 	
