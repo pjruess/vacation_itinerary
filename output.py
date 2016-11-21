@@ -14,7 +14,7 @@ import read_google as gapi
 # **********************
 parser = argparse.ArgumentParser() # allow the creation of arguments
 namespace,unparsed = parser.parse_known_args() # unpack arguments
-print 'unparsed', unparsed
+# print 'unparsed', unparsed
 
 def parse_arg(arg):
 	k,v = arg.split('=',1) # split over equal sign (ie. extract (q, 'query'))
@@ -29,10 +29,10 @@ d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 d['base'] = d['base'].replace('_',' ')
 d['path'] = d['path'].replace('_',' ')
 
-print 'dicttest', d
+# print 'dicttest', d
 
-print 'dpath',d['path']
-print 'dhotel',d['base']
+# print 'dpath',d['path']
+# print 'dhotel',d['base']
 
 master = tk.Tk()
 master.title('Optimal Itinerary')
@@ -59,22 +59,31 @@ font_content = 'Calibri 12'
 font_head = ('Cambria', 24, 'bold')
 # font_head = 'Cambria 20 bold'
 
-myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
-myresponse = gapi.GetResponse(myurl)
-myresults = gapi.GetResults(myresponse)
 input_country = 'US'
 input_city = d['city']
 input_state = d['state']
-input_itinerary = []
+input_map = d['map']
 
-if len(myresults) > 0:
-	for result in myresults:
-		# print '{0}: {1}'.format(result['name'], result['address'])
-		input_itinerary.append(result['name'])
-	# printing the details of the top result
+schedule_list = d['path']
+schedule_list_parsed = schedule_list.replace('[', '').replace(']', '').replace('\'', '')
+input_itinerary = schedule_list_parsed.split(',')
+input_itinerary[0] = d['base']
+input_itinerary[-1] = input_itinerary[0]
+
+# myurl = gapi.build_url_text_search(query = 'top restaurants in Austin, TX')
+# myresponse = gapi.GetResponse(myurl)
+# myresults = gapi.GetResults(myresponse)
+
+# input_itinerary = []
+
+# if len(myresults) > 0:
+# 	for result in myresults:
+# 		# print '{0}: {1}'.format(result['name'], result['address'])
+# 		input_itinerary.append(result['name'])
+# 	# printing the details of the top result
 	
-else:
-	print 'No results available!'
+# else:
+# 	print 'No results available!'
 
 review_content = ''
 reviews_required = 3
@@ -131,7 +140,7 @@ authormenu.add_command(label = 'Sudesh Agrawal', command = lambda: MailAuthor('S
 
 # Add elements to map frame
 # Add map
-image = Image.open(d['map'])
+image = Image.open(input_map)
 width, height = image.size
 map_ratio = float(height) / width
 map_width = frame_width
@@ -185,8 +194,13 @@ itinerary_yscrollbar = tk.Scrollbar(itinerary_frame)
 itinerary_frame_list.config(yscrollcommand = itinerary_yscrollbar.set)
 itinerary_yscrollbar.config(command = itinerary_frame_list.yview)
 
+# for e in input_itinerary:
+# 	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 {}'.format(e))
+
+start = 8	# 8 am is the time when the itinerary starts
 for e in input_itinerary:
-	itinerary_frame_list.insert(tk.END, u'09:00\u201309:30 {}'.format(e))
+	itinerary_frame_list.insert(tk.END, u'{0:02d}:00\u2013{1:02d}:00 {2}'.format(start, start + 2, e))
+	start += 2
 
 itinerary_frame_list.selection_set(0)
 
