@@ -59,12 +59,14 @@ class vacation_itinerary:
 	    self.BstartPTS = self.identifyStartPoints(df=self.Bds,exp=False)
 	    self.BendPTS = self.identifyEndPoints(df=self.Bds,exp=False)
 
-	    # Simplification - all roads speed = 50mph, D=RT
-	    timeF = self.Fds.miles.values/50.
+	    # Recall, Time = Distance / Speed
+	    # Freeway Speed = 65 mph (fclass == Motorway, Motorway Link, Secondary, Secondary Link)
+	    # Other Road Speed = 40 mph
+	    timeF = [self.Fds.miles.values[a]/65. if (self.Fds.fclass.values[a]=='motorway') or (self.Fds.fclass.values[a]=='motorway_link') or (self.Fds.fclass.values[a]=='secondary') or (self.Fds.fclass.values[a]=='secondary_link') else self.Fds.miles.values[a]/40. for a in range(len(self.Fds.miles.values))]
 	    self.F_dict = [dict(time=mi) for mi in timeF]
-	    timeT = self.Tds.miles.values/50.
+	    timeT = [self.Tds.miles.values[a]/65. if (self.Tds.fclass.values[a]=='motorway') or (self.Tds.fclass.values[a]=='motorway_link') or (self.Tds.fclass.values[a]=='secondary') or (self.Tds.fclass.values[a]=='secondary_link') else self.Tds.miles.values[a]/40. for a in range(len(self.Tds.miles.values))]
 	    self.T_dict = [dict(time=mi) for mi in timeT]
-	    timeB = self.Bds.miles.values/50.
+	    timeB = [self.Bds.miles.values[a]/65. if (self.Bds.fclass.values[a]=='motorway') or (self.Bds.fclass.values[a]=='motorway_link') or (self.Bds.fclass.values[a]=='secondary') or (self.Bds.fclass.values[a]=='secondary_link') else self.Bds.miles.values[a]/40. for a in range(len(self.Bds.miles.values))]
 	    self.B_dict = [dict(time=mi) for mi in timeB]
 
 	    # add F streets        
@@ -293,3 +295,4 @@ if __name__ == '__main__':
 	austin_itinerary.drawItineraryPath(itin=optimalItin)
 	austin_itinerary.draw_all_attractions(itin=optimalItin)
 	austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
+	
