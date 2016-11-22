@@ -84,8 +84,13 @@ except:
 	# **********************
 	print 'Clipping new shapefile for local region...'
 
+	# Retrieve state name from acronym using lookup table
+	lookup = pandas.read_csv('states_lookup_table.csv')
+	statename = lookup[lookup.abbreviation == state].name.values[0]
+
 	# File location for State shapefile to clip from
-	roads_shp = 'spatial/{0}/texas.shp'.format(state)
+	shpdest = '/media/paul/pman/compopt/roadnetwork/usa/final/'
+	roads_shp = shpdest + '{0}_roads_final.shp'.format(statename)
 	# roads_shp = 'spatial/usa/merged_final.shp'
 
 	# Retrieve max and min lat and lon values for clip bounding box
