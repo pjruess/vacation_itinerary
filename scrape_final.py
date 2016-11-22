@@ -26,6 +26,11 @@ d = dict(parse_arg(arg) for arg in unparsed) # create dictionary of arguments
 search = d['city'] + ' ' + d['state']# extract search string (ie. 'austin')
 hotel = d['base'].replace('_',' ')
 form = 'csv' # data extension
+state = d['state']
+
+# Retrieve state name from acronym using lookup table
+lookup = pandas.read_csv('states_lookup_table.csv')
+statename = lookup[lookup.abbreviation == state].name.values[0]
 
 # **********************
 # Create nodes dataset from attractions, running scrapy if needed
@@ -52,7 +57,6 @@ nodes['lat'] = lat.astype(float).round(9) # round to 6th decimal
 nodes['lon'] = lon.astype(float).round(9) # round to 6th decimal
 
 del nodes['latlon']
-nodes.to_csv('austin_nodes.csv',index=False) # for testing
 
 # **********************
 # Convert road network into pandas dataframe
@@ -69,13 +73,10 @@ def shp2df(fname,fields=False):
 		data = data[[f for f in fields]]
 	return data
 
-# File location for locally-clipped output
-state = d['state']
-
-out_shp = 'spatial/output/' + d['city'].lower() + '_roads.shp'
+edge_shp = 'spatial/output/' + d['city'].lower() + '_roads.shp'
 
 try: 
-	edges = shp2df(out_shp,fields=['oneway','fclass','LENGTH_GEO',
+	edges = shp2df(edge_shp,fields=['oneway','fclass','LENGTH_GEO',
 		'START_X','START_Y','END_X','END_Y'])
 	print 'Existing clipped shapefile retrieved.'
 except: 
@@ -84,14 +85,10 @@ except:
 	# **********************
 	print 'Clipping new shapefile for local region...'
 
-	# Retrieve state name from acronym using lookup table
-	lookup = pandas.read_csv('states_lookup_table.csv')
-	statename = lookup[lookup.abbreviation == state].name.values[0]
-
 	# File location for State shapefile to clip from
 	shpdest = '/media/paul/pman/compopt/roadnetwork/usa/final/'
 	roads_shp = shpdest + '{0}_roads_final.shp'.format(statename)
-	# roads_shp = 'spatial/usa/merged_final.shp'
+	# roads_shp = 'spatial/TX/texas.shp'
 
 	# Retrieve max and min lat and lon values for clip bounding box
 	# Note this only works in North-Eastern quarter of the globe
@@ -109,13 +106,11 @@ except:
 	top = top + buf
 
 	# ogr2ogr -f "ESRI Shapefile" output.shp input.shp -clipsrc <x_min> <y_min> <x_max> <y_max>
-	# Without buffer: -97.8732112 30.1341647 -97.6384294 30.2975692
-	# With buffer: -97.9732112 30.0341647 -97.5384294 30.3975692
-	clip = 'ogr2ogr -f "ESRI Shapefile" ' + out_shp + ' ' + roads_shp + ' -clipsrc ' + \
+	clip = 'ogr2ogr -f "ESRI Shapefile" ' + edge_shp + ' ' + roads_shp + ' -clipsrc ' + \
 			str(left) + ' ' + str(bot) + ' ' + str(right) + ' ' + str(top)
 	print clip
 	os.system(clip)
-	edges = shp2df(out_shp,fields=['oneway','fclass','LENGTH_GEO',
+	edges = shp2df(edge_shp,fields=['oneway','fclass','LENGTH_GEO',
 		'START_X','START_Y','END_X','END_Y'])
 	print 'Newly clipped shapefile retrieved'
 	print 'Verifying new outputs...'
@@ -144,7 +139,6 @@ for a,b in zip(startpoints,endpoints):
 	lines.append(l.wkt) # add as well-known-text format
 
 edges['LINESTRING'] = lines # add to edges dataset
-edges.to_csv('austin_edges.csv',index=False) # for testing
 
 # **********************
 # Create road network
@@ -155,15 +149,7 @@ import matplotlib.pyplot as plt
 city_itinerary = vacation_itinerary_solver.vacation_itinerary(
 	city_file=edges,attractions_file=nodes)
 print 'Itinerary class initiated'
-"""
-city_itinerary.drawStreetNetwork(GPH=city_itinerary.gdcon)
-city_itinerary.drawAddress(addressLon=city_itinerary.attr.lon.values[0],addressLat=city_itinerary.attr.lat.values[0],GPH_draw=self.gdcon)
-city_itinerary.zoomToFit()
-"""
-# temp = ['hotel']
-# temp.extend(city_itinerary.attr.attraction.values)
-# print city_itinerary.getItineraryReward(itin=temp)
-# city_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+
 optimalItin = city_itinerary.solve_optimal_itinerary(
 	itin=city_itinerary.initial_itinerary)
 print optimalItin
@@ -198,46 +184,5 @@ print 'command-line argument:',command
 
 os.system(command)
 
-# **********************
-# Display road network and nodes in qgis
-# **********************
-# from qgis.core import *
-# from qgis.gui import *
-# from PyQt4.QtCore import *
-
-# # Supply path to QGIS install location
-# QgsApplication.setPrefixPath('/usr/bin/qgis',True)
-# # Create reference to QgsApplication
-# qgs = QgsApplication([],True) # No GUI
-# qgs.initQgis()
-
-# # Initialize map canvas
-# canvas = QgsMapCanvas()
-# canvas.setCanvasColor(Qt.white)
-# canvas.enableAntiAliasing(True) # Smooth rendering
-
-# # Load road layer
-# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-# QgsMapLayerRegistry.instance().addMapLayer(layer)
-# canvas.setExtent(layer.extent())
-# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
-
-# # Load attractions layer
-# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-# QgsMapLayerRegistry.instance().addMapLayer(layer)
-# canvas.setExtent(layer.extent())
-# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
-
-# # Load hotel layer
-# layer = QgsVectorLayer(out_shp,'roadseg','ogr')
-# QgsMapLayerRegistry.instance().addMapLayer(layer)
-# canvas.setExtent(layer.extent())
-# canvas.setLayerSet([QgsMapCanvasLayer(layer)])
-
-# # Display map
-# canvas.refresh()
-# canvas.show()
-# qgs.exec_()
-
-# # Remove provider and layer registries from memory
-# qgs.exitQgis()
+edges.to_csv('{0}_edges.csv'.format(d['city']),index=False) # for testing
+nodes.to_csv('{0}_nodes.csv'.format(d['city']),index=False) # for testing
