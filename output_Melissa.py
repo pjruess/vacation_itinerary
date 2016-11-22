@@ -22,18 +22,18 @@ usable_screen_width = screen_width_factor * screen_width
 usable_screen_height = screen_height_factor * screen_height
 screen_size_ratio = 9.0 / 16.0
 number_frame = 3	# number of frames
-frame_width = int( (usable_screen_width - ( number_frame + 1) * 5 - 8) / number_frame)
+frame_width = int( (usable_screen_width - ( number_frame + 3) * 5) / number_frame)
 frame_height = int(usable_screen_height)
 
 master.minsize(frame_width + (5 * (number_frame + 1)) + 5, int(screen_size_ratio * frame_width))
 master.maxsize(screen_width, screen_height)
-master.geometry("%dx%d%+d%+d" % (screen_width, screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
+master.geometry("%dx%d%+d%+d" % (screen_width, usable_screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
 
 
 # Inputs
 
-font_content = 'Calibri 12'
-font_head = ('Cambria', 24, 'bold')
+font_content = 'Calibri 16'
+font_head = ('Cambria', 26, 'bold')
 # font_head = 'Cambria 20 bold'
 
 input_country = 'US'
@@ -125,12 +125,19 @@ authormenu.add_command(label = 'Sudesh Agrawal', command = lambda: MailAuthor('S
 image = Image.open(input_map)
 width, height = image.size
 map_ratio = float(height) / width
+# map_width, and map_height used for resized image
 map_width = frame_width
-map_height = int((map_width * height) / width)
-
-if width > (2.2 * frame_width):
-	width = int(2.2 * frame_width)
-	height = int(2.2 * frame_width * map_ratio)
+map_height = int(map_width * map_ratio)
+if map_height > (frame_height - 150):
+	map_height = frame_height - 150			# 150 is to account for Zoom/Restore button
+	map_width = int(map_height / map_ratio)
+# original image is resized if it's too big for the display screen
+if width > (2.5 * frame_width):
+	width = int(2.5 * frame_width)
+	height = int(2.5 * frame_width * map_ratio)
+	if height > (frame_height - 150):
+		height = frame_height - 150
+		width = int(height / map_ratio)
 	image = image.resize((width, height), Image.ANTIALIAS)
 
 resized_image = image.resize((map_width, map_height), Image.ANTIALIAS)
@@ -144,7 +151,7 @@ resized_image_label.image = resized_route_map
 
 # Add button to remove everything save the map
 def ZoomMap():
-	itinerary_frame_list.config(height = int(min(height /16.0, usable_screen_height / 16.0)))
+	# itinerary_frame_list.config(height = int(min(height /20.0, usable_screen_height / 20.0)))
 	if width > (2 * frame_width):
 		itinerary_frame.grid_remove()
 	review_frame.grid_remove()
@@ -154,11 +161,12 @@ def ZoomMap():
 	image_label.grid()
 
 def RestoreMap():
-	itinerary_frame_list.config(height = int(map_height / 16.0))
+	# itinerary_frame_list.config(height = int(map_height / 20.0))
 	map_frame_restore_button.grid_remove()
 	image_label.grid_remove()
-	if width > (2 * frame_width):
-		itinerary_frame.grid()
+	# if width > (2 * frame_width):
+	# 	itinerary_frame.grid()
+	itinerary_frame.grid()
 	review_frame.grid()
 	map_frame_zoom_button.grid()
 	resized_image_label.grid()
@@ -167,12 +175,10 @@ def RestoreMap():
 map_frame_zoom_button = tk.Button(map_frame, text = 'Zoom', font = '16', command = ZoomMap)
 map_frame_restore_button = tk.Button(map_frame, text = 'Restore', font = '16', command = RestoreMap)
 
-
-
 # Add elements to itinerary_frame
 itinerary_list = tk.StringVar()
 # height: number of lines, activestyle: 'underline', 'dotbox', 'none'
-itinerary_frame_list = tk.Listbox(itinerary_frame, bd = 0, font = font_content, height = int(map_height / 16.0), activestyle = 'dotbox', exportselection = 1, listvariable = itinerary_list, selectmode = tk.BROWSE, state = tk.NORMAL)
+itinerary_frame_list = tk.Listbox(itinerary_frame, bd = 0, font = font_content, height = int(min(map_height / 20.0, frame_height / 20.0)), activestyle = 'dotbox', exportselection = 1, listvariable = itinerary_list, selectmode = tk.BROWSE, state = tk.NORMAL)
 # Add scrollbars
 itinerary_yscrollbar = tk.Scrollbar(itinerary_frame)
 # attach list box to scrollbar

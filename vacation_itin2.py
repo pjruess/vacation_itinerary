@@ -100,7 +100,7 @@ class vacation_itinerary:
 
 
 	# plots street network using geoplotter
-	def drawStreetNetwork(self,GPH):
+	def drawStreetNetwork(self):
 		# extracts line segment points
 		maplinestemp = self.ds.LINESTRING.str.extract('LINESTRING \(([0-9-.]* [0-9-.]*, [0-9-.]* [0-9-.]*)\)',expand=True)
 		maplinestemp.columns = ['TotLine']
@@ -116,7 +116,7 @@ class vacation_itinerary:
 
 
 	# draws all attractions as a red dot on the map
-	def draw_all_attractions(self,itin,closestNode=True):
+	def draw_all_attractions(self,itin,closestNode=True,with_labels=True):
 		attr_lon = [self.attr[self.attr.attraction==h].lon.values[0] for h in itin]
 		attr_lat = [self.attr[self.attr.attraction==h].lat.values[0] for h in itin]
 		if closestNode==True:
@@ -125,6 +125,16 @@ class vacation_itinerary:
 			attr_lat = nodes_temp[:,1]
 		self.DSmap.drawPoints(lat=attr_lat[0],lon=attr_lon[0],color='r',s=75)
 		self.DSmap.drawPoints(lat=attr_lat[1:-1],lon=attr_lon[1:-1],color='g',s=75)
+
+		# add sequential labels to attractions
+		if with_labels:
+			labels = ['hotel']
+			lb_temp = [b+1 for b in range(len(itin)-1)]
+			labels.extend(['{0}'.format(i) for i in lb_temp])
+			labels.extend('hotel')
+			#plt.subplots_adjust(bottom = 0.1)
+			for lab, x, y in zip(labels, attr_lon, attr_lat):
+			    self.DSmap.annotate( text=lab, xy = (x, y), xytext = (-20, 20), textcoords = 'offset points', ha = 'right', va = 'bottom', bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5), arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
 
 
 	# draws the path
@@ -143,19 +153,19 @@ class vacation_itinerary:
 
 
 	# draw the attractions and paths for the optimal itinerary on the city map
-	def draw_optimal_itinerary(self,opt_itin,co='orange',fname=False):
+	def draw_optimal_itinerary(self,opt_itin,co='orange',fname=False,labelsOnOff=True):
 		print 'Drawing Optimal Itinerary...'
 		# draws the city map
-		self.drawStreetNetwork(GPH=self.gd)
+		self.drawStreetNetwork()
 		# draws path for the optimal itinerary
 		self.drawItineraryPath(itin=opt_itin,colP=co)
 		# draws the attractions
-		self.draw_all_attractions(itin=opt_itin)
+		self.draw_all_attractions(itin=opt_itin,with_labels=labelsOnOff)
 		self.zoomToFit(itin=opt_itin,filename=fname)
 
 
 	# draw attractions and paths for the optimal itinerary for multiple days on the city map
-	def draw_multi_day_optimal_itinerary(self,multi_day_itin,fname=False,onemap=False):
+	def draw_multi_day_optimal_itinerary(self,multi_day_itin,fname=False,onemap=False,labelsOnOff=True):
 		print 'Drawing Map for Multiple Day Itinerary...'
 		print
 
@@ -167,19 +177,17 @@ class vacation_itinerary:
 			for u in multi_day_itin[1:]:
 				temp_itin.extend(u)
 			# draws the city map
-			self.drawStreetNetwork(self.gd)
+			self.drawStreetNetwork()
 			for w in range(len(multi_day_itin)):
-				austin_itinerary.drawItineraryPath(itin=multi_day_itin[w],colP=next(colorP))
-				austin_itinerary.draw_all_attractions(itin=multi_day_itin[w])
-				self.draw_all_attractions(itin=multi_day_itin[w])
+				self.drawItineraryPath(itin=multi_day_itin[w],colP=next(colorP))
+				self.draw_all_attractions(itin=multi_day_itin[w],with_labels=labelsOnOff)
 				self.zoomToFit(itin=temp_itin,filename="all_days_"+fname)
 		else:	# draws a map for each day
 			for w in range(len(multi_day_itin)):
 				# draws the city map
-				self.drawStreetNetwork(self.gd)
-				austin_itinerary.drawItineraryPath(itin=multi_day_itin[w])
-				austin_itinerary.draw_all_attractions(itin=multi_day_itin[w])
-				self.draw_all_attractions(itin=multi_day_itin[w])
+				self.drawStreetNetwork()
+				self.drawItineraryPath(itin=multi_day_itin[w])
+				self.draw_all_attractions(itin=multi_day_itin[w],with_labels=labelsOnOff)
 				if fname:
 					fname_temp = 'day' + str(w+1) + '_' + fname
 					self.zoomToFit(itin=multi_day_itin[w],filename=fname_temp)
@@ -196,9 +204,9 @@ class vacation_itinerary:
 		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
-		ax.get_yaxis().set_ticks([])
+		ax.get_yaxis().set_ticks([])		
 		if filename: 
-			matplotlib.pyplot.savefig(filename)
+			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=360)
 		else: 
 			matplotlib.pyplot.show()
 
@@ -344,19 +352,26 @@ class vacation_itinerary:
 
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
-	""""
+	"""
 	optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
 	print optimalItin
 	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
 	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
 	print 
+	austin_itinerary.draw_optimal_itinerary(opt_itin=optimalItin,fname='optimal_itinerary.png',labelsOnOff=True)
 	"""
-	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=5)
-	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='test_day_itinerary.png',onemap=True)
-
+	# austin_itinerary.drawItineraryPath(itin=optimalItin)
+	# austin_itinerary.draw_all_attractions(itin=optimalItin)
+	#austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
+	
 	"""
-	austin_itinerary.drawItineraryPath(itin=optimalItin)
-	austin_itinerary.draw_all_attractions(itin=optimalItin)
-	austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
+	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=3)
+	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='three_day_itinerary_new.png',onemap=False,labelsOnOff=True)
 	"""
+	
+	austin_itinerary.drawStreetNetwork()
+	austin_itinerary.draw_all_attractions(itin=austin_itinerary.initial_itinerary,with_labels=True)
+	austin_itinerary.zoomToFit(itin=austin_itinerary.initial_itinerary,filename='test.png')
+	
+	
 	

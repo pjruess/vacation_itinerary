@@ -169,7 +169,7 @@ optimalItin = city_itinerary.solve_optimal_itinerary(
 print optimalItin
 print 'total reward: ', city_itinerary.getItineraryReward(
 	itin=optimalItin)
-city_itinerary.drawStreetNetwork(GPH=city_itinerary.gd)
+city_itinerary.drawStreetNetwork()
 print 'Street network drawn'
 city_itinerary.drawItineraryPath(itin=optimalItin)
 print 'Shortest path drawn'
