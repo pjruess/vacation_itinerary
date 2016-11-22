@@ -149,10 +149,10 @@ edges.to_csv('austin_edges.csv',index=False) # for testing
 # **********************
 # Create road network
 # **********************
-import vacation_itin1
+import vacation_itinerary_solver
 import matplotlib.pyplot as plt
 
-city_itinerary = vacation_itin1.vacation_itinerary(
+city_itinerary = vacation_itinerary_solver.vacation_itinerary(
 	city_file=edges,attractions_file=nodes)
 print 'Itinerary class initiated'
 """
