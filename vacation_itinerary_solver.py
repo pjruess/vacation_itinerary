@@ -205,8 +205,8 @@ class vacation_itinerary:
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
 		ax.get_yaxis().set_ticks([])	
-		fig = matplotlib.pyplot.gcf()
-		fig.set_size_inches(11, 8)	
+		# fig = matplotlib.pyplot.gcf()
+		# fig.set_size_inches(11, 8)	
 		if filename: 
 			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=120, figsize = (11, 8))
 		else: 
