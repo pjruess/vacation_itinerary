@@ -55,8 +55,8 @@ master.maxsize(screen_width, screen_height)
 master.geometry("%dx%d%+d%+d" % (screen_width, screen_height, 0, 0))		# "%dx%d%+d%+d" % (width, height, xoffset, yoffset)
 
 # Inputs
-font_content = 'Calibri 12'
-font_head = ('Cambria', 24, 'bold')
+font_content = 'Calibri 16'
+font_head = ('Cambria', 26, 'bold')
 # font_head = 'Cambria 20 bold'
 
 input_country = 'US'
