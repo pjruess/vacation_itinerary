@@ -18,10 +18,10 @@ class vacation_itinerary:
 
 	def __init__(self,city_file,attractions_file,**kwargs):
 		# reads road network file
-		# self.ds = pandas.read_csv(city_file)
+		#self.ds = pandas.read_csv(city_file)
 		self.ds = city_file
 		# reads attraction address file
-		# self.attr = pandas.read_csv(attractions_file)
+		#self.attr = pandas.read_csv(attractions_file)
 		self.attr = attractions_file
 		self.initial_itinerary = ['hotel']
 		self.initial_itinerary.extend(self.attr.attraction.values)
@@ -200,7 +200,7 @@ class vacation_itinerary:
 	def zoomToFit(self,itin,filename=False):
 		# gets range of longitude and latitude w.r.t. the attractions and zooms map
 		lonLatRan = self.getLonLatRange(itin_list=itin)
-		margin = 0.01
+		margin = 0.05
 		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
@@ -357,7 +357,7 @@ if __name__ == '__main__':
 	
 	# Solve for one optimal path
 	#optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
-	optimalItin = ['hotel', 'The Blanton Museum of Art', 'South Congress Avenue', 'Congress Avenue Bridge / Austin Bats', 'State Capitol', 'hotel']
+	optimalItin = ['hotel', 'Zilker Botanical Garden', 'Lady Bird Johnson Wildflower Center', 'Congress Avenue Bridge / Austin Bats', 'State Capitol', 'hotel']
 	print optimalItin
 	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
 	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
