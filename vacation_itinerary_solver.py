@@ -208,7 +208,7 @@ class vacation_itinerary:
 		fig = matplotlib.pyplot.gcf()
 		fig.set_size_inches(11, 8)	
 		if filename: 
-			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=120)
+			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=120, figsize = (11, 8))
 		else: 
 			matplotlib.pyplot.show()
 
