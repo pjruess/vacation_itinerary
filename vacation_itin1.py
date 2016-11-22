@@ -200,15 +200,15 @@ class vacation_itinerary:
 	def zoomToFit(self,itin,filename=False):
 		# gets range of longitude and latitude w.r.t. the attractions and zooms map
 		lonLatRan = self.getLonLatRange(itin_list=itin)
-		margin = 0.05
+		margin = 0.01
 		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
 		ax.get_yaxis().set_ticks([])	
 		fig = matplotlib.pyplot.gcf()
-		fig.set_size_inches(20, 20)	
+		fig.set_size_inches(11, 8)	
 		if filename: 
-			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=1000)
+			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=120)
 		else: 
 			matplotlib.pyplot.show()
 
@@ -357,7 +357,7 @@ if __name__ == '__main__':
 	
 	# Solve for one optimal path
 	#optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
-	optimalItin = ['hotel', 'Town Lake', 'South Congress Avenue', 'Thinkery', 'State Capitol', 'hotel']
+	optimalItin = ['hotel', 'The Blanton Museum of Art', 'South Congress Avenue', 'Congress Avenue Bridge / Austin Bats', 'State Capitol', 'hotel']
 	print optimalItin
 	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
 	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
