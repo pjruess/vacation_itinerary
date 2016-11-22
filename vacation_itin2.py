@@ -206,7 +206,7 @@ class vacation_itinerary:
 		ax.axes.get_xaxis().set_ticks([])
 		ax.get_yaxis().set_ticks([])		
 		if filename: 
-			matplotlib.pyplot.savefig(filename,bbox_inches='tight')
+			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=360)
 		else: 
 			matplotlib.pyplot.show()
 
