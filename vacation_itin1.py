@@ -204,9 +204,11 @@ class vacation_itinerary:
 		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
-		ax.get_yaxis().set_ticks([])		
+		ax.get_yaxis().set_ticks([])	
+		fig = matplotlib.pyplot.gcf()
+		fig.set_size_inches(20, 20)	
 		if filename: 
-			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=360)
+			matplotlib.pyplot.savefig(filename,bbox_inches='tight',dpi=1000)
 		else: 
 			matplotlib.pyplot.show()
 
@@ -352,26 +354,33 @@ class vacation_itinerary:
 
 if __name__ == '__main__':
 	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
-	"""
-	optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
+	
+	# Solve for one optimal path
+	#optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
+	optimalItin = ['hotel', 'Town Lake', 'South Congress Avenue', 'Thinkery', 'State Capitol', 'hotel']
 	print optimalItin
 	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
 	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
 	print 
 	austin_itinerary.draw_optimal_itinerary(opt_itin=optimalItin,fname='optimal_itinerary.png',labelsOnOff=True)
+	
 	"""
+	# draws the optimal path without draw_optimal_itinerary
 	# austin_itinerary.drawItineraryPath(itin=optimalItin)
 	# austin_itinerary.draw_all_attractions(itin=optimalItin)
 	#austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
-	
 	"""
+	"""
+	# Solve for multiple day itinerary
 	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=3)
 	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='three_day_itinerary_new.png',onemap=False,labelsOnOff=True)
 	"""
-	
+	"""
+	# Draw street network and all attraction addresses
 	austin_itinerary.drawStreetNetwork()
 	austin_itinerary.draw_all_attractions(itin=austin_itinerary.initial_itinerary,with_labels=True)
 	austin_itinerary.zoomToFit(itin=austin_itinerary.initial_itinerary,filename='test.png')
+	"""
 	
 	
 	
