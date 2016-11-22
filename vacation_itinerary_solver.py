@@ -26,7 +26,7 @@ class vacation_itinerary:
 		self.initial_itinerary = ['hotel']
 		self.initial_itinerary.extend(self.attr.attraction.values)
 		# creates GeoPlotter object
-		self.DSmap = GeoPlotter()
+		self.DSmap = GeoPlotter(epsg=4326)
 		# creates networkx graph
 		self.createNetworkxGraph()
 
@@ -100,7 +100,27 @@ class vacation_itinerary:
 
 
 	# plots street network using geoplotter
-	def drawStreetNetwork(self):
+	def drawStreetNetwork(self, states_and_water_filled=False):
+		# Draw countries, oceans and states if states_and_water_filled is true
+		if states_and_water_filled:
+			from matplotlib.patches import Polygon
+			from matplotlib.collections import PatchCollection
+			from matplotlib.patches import PathPatch
+			# draw world
+			"""Draws oceans, countries, and states."""
+			self.DSmap.drawMapBoundary()
+			#self.DSmap.fillContinents()
+			#self.DSmap.drawCoastLines(linewidth=0.7)
+			self.DSmap.drawCountries(linewidth=1.5)
+			self.DSmap.m.readshapefile('st99_d00', name='states', drawbounds=False)
+
+			patches   = []
+			for shape in zip(self.DSmap.m.states):
+				patches.append( Polygon(scipy.array(shape)[0], True) )
+
+			ax = self.DSmap.getAxes()
+			ax.add_collection(PatchCollection(patches, facecolor= 'beige', edgecolor='k', linewidths=1., zorder=2))
+
 		# extracts line segment points
 		maplinestemp = self.ds.LINESTRING.str.extract('LINESTRING \(([0-9-.]* [0-9-.]*, [0-9-.]* [0-9-.]*)\)',expand=True)
 		maplinestemp.columns = ['TotLine']
@@ -153,10 +173,10 @@ class vacation_itinerary:
 
 
 	# draw the attractions and paths for the optimal itinerary on the city map
-	def draw_optimal_itinerary(self,opt_itin,co='orange',fname=False,labelsOnOff=True):
+	def draw_optimal_itinerary(self,opt_itin,co='orange',fname=False,labelsOnOff=True,state_lines=False):
 		print 'Drawing Optimal Itinerary...'
 		# draws the city map
-		self.drawStreetNetwork()
+		self.drawStreetNetwork(states_and_water_filled=state_lines)
 		# draws path for the optimal itinerary
 		self.drawItineraryPath(itin=opt_itin,colP=co)
 		# draws the attractions
@@ -165,7 +185,7 @@ class vacation_itinerary:
 
 
 	# draw attractions and paths for the optimal itinerary for multiple days on the city map
-	def draw_multi_day_optimal_itinerary(self,multi_day_itin,fname=False,onemap=False,labelsOnOff=True):
+	def draw_multi_day_optimal_itinerary(self,multi_day_itin,fname=False,onemap=False,labelsOnOff=True,state_lines=False):
 		print 'Drawing Map for Multiple Day Itinerary...'
 		print
 
@@ -177,7 +197,7 @@ class vacation_itinerary:
 			for u in multi_day_itin[1:]:
 				temp_itin.extend(u)
 			# draws the city map
-			self.drawStreetNetwork()
+			self.drawStreetNetwork(states_and_water_filled=state_lines)
 			for w in range(len(multi_day_itin)):
 				self.drawItineraryPath(itin=multi_day_itin[w],colP=next(colorP))
 				self.draw_all_attractions(itin=multi_day_itin[w],with_labels=labelsOnOff)
@@ -200,7 +220,10 @@ class vacation_itinerary:
 	def zoomToFit(self,itin,filename=False):
 		# gets range of longitude and latitude w.r.t. the attractions and zooms map
 		lonLatRan = self.getLonLatRange(itin_list=itin)
-		margin = 0.05
+		margin_range = max([abs(lonLatRan[0][0]-lonLatRan[0][1]), abs(lonLatRan[1][0]-lonLatRan[1][1])])
+		margin = 0.5*margin_range
+		#self.DSmap.setZoom(-130,25,-60,50)
+		#self.DSmap.setZoom(-160,18,-155,23)
 		self.DSmap.setZoom(lonLatRan[0][0]-margin, lonLatRan[1][0]-margin, lonLatRan[0][1]+margin, lonLatRan[1][1]+margin)
 		ax = self.DSmap.getAxes()
 		ax.axes.get_xaxis().set_ticks([])
@@ -353,33 +376,39 @@ class vacation_itinerary:
 
 
 if __name__ == '__main__':
-	austin_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
-	
+	city_itinerary = vacation_itinerary(city_file='Honolulu_edges.csv',attractions_file='Honolulu_nodes.csv')
+	#city_itinerary = vacation_itinerary(city_file='austin_edges.csv',attractions_file='austin_nodes.csv')
+	#city_itinerary = vacation_itinerary(city_file='District_of_Columbia_edges.csv',attractions_file='District_of_Columbia_nodes.csv')
+	#city_itinerary = vacation_itinerary(city_file='Anchorage_edges.csv',attractions_file='Anchorage_nodes.csv')
+
 	# Solve for one optimal path
-	#optimalItin = austin_itinerary.solve_optimal_itinerary(itin=austin_itinerary.initial_itinerary)
-	optimalItin = ['hotel', 'Zilker Botanical Garden', 'Lady Bird Johnson Wildflower Center', 'Congress Avenue Bridge / Austin Bats', 'State Capitol', 'hotel']
+	#optimalItin = city_itinerary.solve_optimal_itinerary(itin=city_itinerary.initial_itinerary)
+	optimalItin = ['hotel', 'USS Arizona Memorial', 'Pacific Aviation Museum Pearl Harbor', 'Koko Crater Trail', 'Bishop Museum', 'hotel']
+	#optimalItin = ['hotel', 'Zilker Botanical Garden', 'Lady Bird Johnson Wildflower Center', 'Congress Avenue Bridge / Austin Bats', 'State Capitol', 'hotel']
+	#optimalItin = ['hotel', 'Hillwood Museum & Gardens', 'Vietnam Veterans Memorial', 'John F. Kennedy Center for the Performing Arts', 'National Museum of American History', 'hotel']
+	#optimalItin = ['hotel', 'Iditarod Trail Sled Dog Race', 'Anchorage Museum at Rasmuson Center', 'hotel']
 	print optimalItin
-	print 'total reward: ', austin_itinerary.getItineraryReward(itin=optimalItin)
-	print 'total time: ', austin_itinerary.getTotalTime(itin=optimalItin[0:-1])
+	print 'total reward: ', city_itinerary.getItineraryReward(itin=optimalItin)
+	print 'total time: ', city_itinerary.getTotalTime(itin=optimalItin[0:-1])
 	print 
-	austin_itinerary.draw_optimal_itinerary(opt_itin=optimalItin,fname='optimal_itinerary.png',labelsOnOff=True)
+	city_itinerary.draw_optimal_itinerary(opt_itin=optimalItin,fname='coast_none_honolulu_.png',labelsOnOff=True,state_lines=False)
 	
 	"""
 	# draws the optimal path without draw_optimal_itinerary
-	# austin_itinerary.drawItineraryPath(itin=optimalItin)
-	# austin_itinerary.draw_all_attractions(itin=optimalItin)
-	#austin_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
+	# city_itinerary.drawItineraryPath(itin=optimalItin)
+	# city_itinerary.draw_all_attractions(itin=optimalItin)
+	#city_itinerary.zoomToFit(filename='optimal_itinerary.png',itin=optimalItin)
 	"""
 	"""
 	# Solve for multiple day itinerary
-	three_day_itin = austin_itinerary.solve_full_itinerary(working_itin=austin_itinerary.initial_itinerary,days=3)
-	austin_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='three_day_itinerary_new.png',onemap=False,labelsOnOff=True)
+	three_day_itin = city_itinerary.solve_full_itinerary(working_itin=city_itinerary.initial_itinerary,days=3)
+	city_itinerary.draw_multi_day_optimal_itinerary(multi_day_itin=three_day_itin,fname='three_day_itinerary_new.png',onemap=False,labelsOnOff=True)
 	"""
 	"""
 	# Draw street network and all attraction addresses
-	austin_itinerary.drawStreetNetwork()
-	austin_itinerary.draw_all_attractions(itin=austin_itinerary.initial_itinerary,with_labels=True)
-	austin_itinerary.zoomToFit(itin=austin_itinerary.initial_itinerary,filename='test.png')
+	city_itinerary.drawStreetNetwork()
+	city_itinerary.draw_all_attractions(itin=city_itinerary.initial_itinerary,with_labels=True)
+	city_itinerary.zoomToFit(itin=city_itinerary.initial_itinerary,filename='test.png')
 	"""
 	
 	
