@@ -4,9 +4,9 @@ import urllib, json
 # pip install Image
 import PIL.Image as img
 
-googleplaces_webservice_key = 'AIzaSyD1iWyK2FNXlRdhU5JKgt2ZRtVYGGWc8-k'		# sudesshc gmail account
+# googleplaces_webservice_key = 'AIzaSyD1iWyK2FNXlRdhU5JKgt2ZRtVYGGWc8-k'		# sudesshc gmail account
 
-# googleplaces_webservice_key = 'AIzaSyBsILob4SDyR5z0IurzRUylOjioqiTxXP4'		# sdsh11 gmail account
+googleplaces_webservice_key = 'AIzaSyBsILob4SDyR5z0IurzRUylOjioqiTxXP4'		# sdsh11 gmail account
 
 # # This key is reserved for presentation day; DO NOT USE on any other day
 # googleplaces_webservice_key = 'AIzaSyBQAXQgerdCsk-W1r5NimKccumd32lPzPs'		# utexas account
