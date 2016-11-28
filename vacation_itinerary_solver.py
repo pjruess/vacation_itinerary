@@ -317,7 +317,7 @@ class vacation_itinerary:
 	# calculates total travel time and time spent at all attractions (does not include travel time back to hotel)
 	def getTotalTime(self,itin):
 		time_reward_temp = [networkx.shortest_path_length(self.gdcon, source=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p]].lat.values[0],GPH=self.gdcon)[0], target=self.findClosestNode(placeLon=self.attr[self.attr.attraction==itin[p+1]].lon.values[0],placeLat=self.attr[self.attr.attraction==itin[p+1]].lat.values[0],GPH=self.gdcon)[0], weight='time') for p in range(len(itin)-1)]
-		return scipy.sum(time_reward_temp) + 2*(len(itin))
+		return scipy.sum(time_reward_temp) + 2*(len(itin)-1)
 
 
 	# solves for the optimal itinerary for one day

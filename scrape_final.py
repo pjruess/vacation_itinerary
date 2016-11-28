@@ -86,7 +86,8 @@ except:
 	print 'Clipping new shapefile for local region...'
 
 	# File location for State shapefile to clip from
-	shpdest = '/media/paul/pman/compopt/roadnetwork/usa/final/'
+	shpdest = 'spatial/final/'
+	# shpdest = '/media/paul/pman/compopt/roadnetwork/usa/final/'
 	roads_shp = shpdest + '{0}_roads_final.shp'.format(statename)
 	# roads_shp = 'spatial/TX/texas.shp'
 
@@ -155,14 +156,16 @@ optimalItin = city_itinerary.solve_optimal_itinerary(
 print optimalItin
 print 'total reward: ', city_itinerary.getItineraryReward(
 	itin=optimalItin)
-city_itinerary.drawStreetNetwork()
-print 'Street network drawn'
-city_itinerary.drawItineraryPath(itin=optimalItin)
-print 'Shortest path drawn'
-city_itinerary.draw_all_attractions(itin=optimalItin)
-print 'Attractions drawn'
-city_itinerary.zoomToFit(itin=optimalItin,
-	filename='optimal_itinerary.png')
+# city_itinerary.drawStreetNetwork()
+# print 'Street network drawn'
+# city_itinerary.drawItineraryPath(itin=optimalItin)
+# print 'Shortest path drawn'
+# city_itinerary.draw_all_attractions(itin=optimalItin)
+# print 'Attractions drawn'
+city_itinerary.draw_optimal_itinerary(opt_itin=optimalItin,co='orange',
+	fname='optimal_itinerary.png',labelsOnOff=True,state_lines=True)
+# city_itinerary.zoomToFit(itin=optimalItin,
+# 	filename='optimal_itinerary.png')
 
 # **********************
 # Display road network and nodes in tkinter gui
